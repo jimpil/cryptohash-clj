@@ -1,5 +1,6 @@
 (ns cryptohash-clj.util
-  (:require [cryptohash-clj.stealth :as stealth])
+  (:require [cryptohash-clj.stealth :as stealth]
+            [clojure.spec.alpha :as s])
   (:import (java.nio ByteBuffer)
            (java.nio.charset Charset)
            (java.util Arrays Base64$Encoder Base64 Base64$Decoder)))
@@ -71,3 +72,8 @@
        (replace esc-smap)
        (apply str)
        re-pattern))
+
+(defn validate-options!
+  [opts spec]
+  (when-let [errors (s/explain-data spec opts)]
+    (throw (ex-info "Invalid options detected!" errors))))

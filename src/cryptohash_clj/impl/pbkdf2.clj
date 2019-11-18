@@ -1,9 +1,9 @@
 (ns cryptohash-clj.impl.pbkdf2
   (:require [cryptohash-clj
+             [proto :as proto]
+             [random :as random]
              [util :as ut]
              [stealth :as stealth]]
-            [cryptohash-clj.random :as random]
-            [cryptohash-clj.proto :as proto]
             [clojure.string :as str])
   (:import (javax.crypto SecretKeyFactory)
            (javax.crypto.spec PBEKeySpec)

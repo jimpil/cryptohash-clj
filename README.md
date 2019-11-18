@@ -13,7 +13,7 @@
 - SCRYPT (w/o stealth because the underlying Java lib deals with Strings only)
 - type consistent (return type matches the input type)
 - overly long value support (all algorithms)
-- highly configurable (where applicable/possible)
+- highly configurable (where applicable/possible) and fully spec-ed
 - reflection-free (despite the heavy interop)
 
 ## Where

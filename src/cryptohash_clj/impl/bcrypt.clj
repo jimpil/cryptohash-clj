@@ -1,7 +1,8 @@
 (ns cryptohash-clj.impl.bcrypt
-  (:require [cryptohash-clj.proto :as proto]
-            [cryptohash-clj.random :as random]
-            [cryptohash-clj.util :as ut])
+  (:require [cryptohash-clj
+             [proto :as proto]
+             [random :as random]
+             [util :as ut]])
   (:import [at.favre.lib.crypto.bcrypt BCrypt
                                        BCrypt$Version
                                        BCrypt$Hasher
