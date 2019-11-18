@@ -5,10 +5,10 @@
 
 (defn- scrypt*
   [raw {:keys [cpu-cost mem-cost pfactor]
-        :or {cpu-cost 32768 ;; 2^15
+        :or {cpu-cost 15
              mem-cost 8
              pfactor 1}}] ;; parallelization param
-   (SCryptUtil/scrypt raw cpu-cost mem-cost pfactor))
+   (SCryptUtil/scrypt raw (long (Math/pow 2 cpu-cost)) mem-cost pfactor))
 
 (defn- hash=
   [raw hashed]

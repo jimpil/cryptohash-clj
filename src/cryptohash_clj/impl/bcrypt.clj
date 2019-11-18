@@ -35,7 +35,7 @@
 (defn- bcrypt*
   [input ;; chars or bytes
    {:keys [cost hasher]
-    :or {cost 8}
+    :or {cost 12}
     :as opts}
    f]
   (f (or hasher
