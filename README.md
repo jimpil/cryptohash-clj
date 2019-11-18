@@ -102,7 +102,7 @@ However it lacks an api for bytes/chars (even if the underlying Java lib support
 
 ## License
 
-Copyright © 2019 FIXME
+Copyright © 2019 Dimitrios Piliouras
 
 This program and the accompanying materials are made available under the
 terms of the Eclipse Public License 2.0 which is available at
