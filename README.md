@@ -1,6 +1,8 @@
 # cryptohash-clj
 
-A Clojure api for easy/flexible cryptographic hashing.
+<p align="center">
+  <img src="https://media.kasperskydaily.com/wp-content/uploads/sites/92/2014/04/06043900/hash.jpg"/>
+</p>
 
 
 ## Features
