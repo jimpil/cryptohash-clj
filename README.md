@@ -64,10 +64,10 @@ Can be configured with the following options:
 - `:algo` (defaults to `:hmac+sha512`, but `:hmac+sha256` and `:hmac+sha1` are valid choices)
 - `:key-length` (defaults to the native output length of `:algo` - 64, 32, 20 bytes respectively)
 
-I would advise **against** overriding the default `key-length` as the wrong value can potentially make life easier to an attacker.
+I would advise **against** overriding the default `key-length`.
 You should certainly avoid providing a number of bits (bytes * 8) greater than the native output length of your chosen `algo` 
-as it makes life easier to an attacker. Providing less is safer, but don't think that it saves you any computation. 
-Therefore best to stick with the native output length.  
+as it makes life easier for an attacker. Providing less is safer, but since it won't save you any computation, it's 
+best to stick with the native output length.  
 
 #### BCRYPT
 
@@ -108,7 +108,10 @@ A convenience macro `with-PRNG` is also provided in the same namespace for easy 
 
 ## Alternatives
 [crypto-password](https://github.com/weavejester/crypto-password) is the obvious alternative here.
-However it lacks an api for bytes/chars (even if the underlying Java lib supports it), stealth-mode, and general configurability.
+However it lacks an api for bytes/chars (even if the underlying Java lib supports it), stealth-mode, 
+and generally speaking is less configurable.
+However, if you're already using it and are content with using String as the base type (as opposed to bytes or chars), 
+there is no real value to switching.
   
 
 ## License
