@@ -34,7 +34,7 @@ These will delegate to the right implementation according to the first parameter
 ```clj
 (hash-with :pbkdf2 "_sUpErSeCrEt@1234!_" {:iterations 100})
 
-=> "ZA==$AMA=$hmac-sha256$czrJNQ7CJEbfY5v4$hPuUvHFyGiF3aiE9VBsZZ1AUSehKRbQo"
+=> "ZA==$AMA=$hmac+sha256$czrJNQ7CJEbfY5v4$hPuUvHFyGiF3aiE9VBsZZ1AUSehKRbQo"
 
 (verify-with :pbkdf2 "_sUpErSeCrEt@1234!_" {} *1)
 
@@ -55,16 +55,16 @@ Can be configured with the following options:
 
 - `:separator`  (defaults to `\$`)
 - `:iterations` (defaults to `1,000,000`)
-- `:algo` (defaults to `:hmac-sha256` but `:hmac-sha1` and `:hmac-sha512` are valid choices)
-- `:key-length` (defaults to `192`)
+- `:algo` (defaults to `:hmac+sha512`, but `:hmac+sha256` and `:hmac+sha1` are valid choices)
+- `:key-length` (defaults to the native output length of `:algo` - 64, 32, 20 respectively)
 
 #### BCRYPT
 
 Can be configured with the following options:
 
-- `:version` (defaults to `:v2a` but `:v2b`, `:v2x`, `:v2y`, `:v2y-no-null-terminator` and `:vbc` are valid choices) 
-- `:cost` (must not be greater than 31 -defaults to `8`)
-- `:long-value-strategy` (defaults to `:sha512` but `:strict` and `:truncate` are valid choices)
+- `:version` (defaults to `:v2a` but `:v2b`, `:v2x`, `:v2y`, `:v2y-nnt` and `:vbc` are valid choices) 
+- `:cpu-cost` (defaults to `12`)
+- `:long-value-strategy` (defaults to `:sha512`, but `:strict` and `:truncate` are valid choices)
 
 Note that specifically in bcrypt, hasher and verifyer objects are immutable/thread-safe, and therefore can be reused 
 (see `bcrypt/new-hasher` and `bcrypt/new-verifyer`). 
@@ -73,9 +73,9 @@ Note that specifically in bcrypt, hasher and verifyer objects are immutable/thre
 
 Can be configured with the following options:
 
-- `:cpu-cost` (must be a power of 2 - defaults to `32768`) 
+- `:cpu-cost` (defaults to `15`) 
 - `:mem-cost` (defaults to `8`)
-- `:pfactor` (parallelization - defaults to `1`)
+- `:pfactor` (parallelization factor - defaults to `1`)
 
 As noted earlier, scrypt is the only algorithm that deals with Strings exclusively (due to the underlying Java lib). 
 As a result, there is no point using stealth with it.
@@ -83,12 +83,12 @@ As a result, there is no point using stealth with it.
 ## Stealth mode
 
 Stealth mode is controlled by `cryptohash-clj.stealth/*stealth?*` (bound to `true`). 
-A convenience macro `with-stealth` is also provided in the same namespace.
+A convenience macro `with-stealth` is also provided in the same namespace for easy overriding.
 
 ## Secure random bytes (for salting etc)
 
-All random bytes are produced via an instance of `SecureRandom` which lives in `cryptohash-clj.random/*PRNG*`.
-A convenience macro `with-PRNG` is also provided in the same namespace.
+All random bytes are produced via a global instance of `SecureRandom` which lives in `cryptohash-clj.random/*PRNG*`.
+A convenience macro `with-PRNG` is also provided in the same namespace for easy overriding.
 
 ## Requirements
 

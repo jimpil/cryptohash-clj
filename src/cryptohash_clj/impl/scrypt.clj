@@ -1,5 +1,6 @@
 (ns cryptohash-clj.impl.scrypt
-  (:require [cryptohash-clj.proto :as proto])
+  (:require [cryptohash-clj.proto :as proto]
+            [cryptohash-clj.util :as ut])
   (:import (com.lambdaworks.crypto SCryptUtil)))
 
 
@@ -7,7 +8,7 @@
   [raw {:keys [cpu-cost mem-cost pfactor]
         :or {cpu-cost 15
              mem-cost 8
-             pfactor 1}}] ;; parallelization param
+             pfactor 1}}] ;; parallelization factor
    (SCryptUtil/scrypt raw (long (Math/pow 2 cpu-cost)) mem-cost pfactor))
 
 (defn- hash=
@@ -45,4 +46,4 @@
   "Compare a raw string with a string encrypted with the [[encrypt]] function.
   Returns true if the string matches, false otherwise."
   [raw hashed]
-  (proto/verify raw nil hashed))
+  (proto/verify raw nil (ut/to-str hashed)))

@@ -10,9 +10,9 @@
            (java.util Arrays)))
 
 (defonce algorithms
-  {:hmac-sha1   "PBKDF2WithHmacSHA1"     ;; JDK7
-   :hmac-sha256 "PBKDF2WithHmacSHA256"   ;; JDK8
-   :hmac-sha512 "PBKDF2WithHmacSHA512"}) ;; JDK9
+  {:hmac+sha1   "PBKDF2WithHmacSHA1"     ;; JDK7
+   :hmac+sha256 "PBKDF2WithHmacSHA256"   ;; JDK8
+   :hmac+sha512 "PBKDF2WithHmacSHA512"}) ;; JDK9
 
 (defn- hash=
   "Test whether two sequences of characters or bytes are equal in a way that
@@ -54,9 +54,9 @@
         klength       (b64->int (parts 1))
         algorithm     (if (= (count parts) 5)
                         (parts 2)
-                        "hmac-sha1")
+                        "hmac+sha1")
         salt          (ut/base64-str->bytes
-                        (if (= algorithm "hmac-sha1")
+                        (if (= algorithm "hmac+sha1")
                           (parts 2)
                           (parts 3)))
         raw-encrypted (proto/chash x (assoc opts :salt salt
@@ -65,12 +65,19 @@
                                                  :algorithm (keyword algorithm)))]
     (hash= raw-encrypted encrypted)))
 
+(defn- invalid-separator?
+  [c]
+  (some?
+    (re-matches
+      #"[A-Za-z0-9\+\/=]" ;; base64 alphabet
+      (str c))))
+
 (defn- pbkdf2*
   "Get a PBKDF2 (key-stretching) hash for the given string <pwd>.
    A good/similar alternative to bcrypt. Options include:
 
   :algo - The algorithm to use. See `treajure.crypto-hashing/pbkdf2-algorithms`
-          for the supported algorithms. Defaults to `:hmac-sha512`.
+          for the supported algorithms. Defaults to `:hmac+sha512`.
 
   :salt - The salt to use (a byte-array or String). Defaults to 12 random bytes (generated via `SecureRandom`).
 
@@ -85,16 +92,29 @@
   separated by the :separator character."
 
   ^String
-  [^chars pwd {:keys [algo salt key-length iterations separator]
-               :or {algo :hmac-sha256
+  [^chars pwd {:keys [algo salt salt-length key-length iterations separator]
+               :or {algo :hmac+sha512
                     iterations 1000000 ;; 1E6 iterations is a reasonable starting point
-                    key-length 192  ;; 192-bit long
+                    salt-length 16
                     separator \$}}]
 
-  (let [^bytes salt (or salt (random/next-random-bytes! 12))
+  (when (invalid-separator? separator)
+    (throw
+      (IllegalArgumentException.
+        (format "Invalid separator [%s]!" separator))))
+
+  (let [key-length (or key-length
+                       ;; Never request more output than the
+                       ;; native output of the inner hashing function
+                       (case algo ;; we want bits so multiply by 8
+                         :hmac+sha1   (* 20 8)
+                         :hmac+sha256 (* 32 8)
+                         :hmac+sha512 (* 64 8)))
+        ^bytes salt (or salt (random/next-random-bytes! salt-length))
         factory (SecretKeyFactory/getInstance
                   (or (algorithms algo)
-                      (throw (IllegalArgumentException. "Algorithm not recognised!"))))
+                      (throw (IllegalArgumentException.
+                               (format "Algorithm [%s] not recognised!" algo)))))
         salt-chars (ut/bytes->chars salt)
         ;; prepend the salt to the hash
         ^chars salt+x-chars (ut/aconcat-chars! salt-chars pwd) ;; this call will clear both args
@@ -149,4 +169,4 @@
 
 (defn verify
   [x opts hashed]
-  (proto/verify x opts hashed))
+  (proto/verify x opts (ut/to-str hashed)))

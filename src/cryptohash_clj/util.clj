@@ -73,7 +73,21 @@
        (apply str)
        re-pattern))
 
-(defn validate-options!
+#_(defn validate-options!
   [opts spec]
   (when-let [errors (s/explain-data spec opts)]
     (throw (ex-info "Invalid options detected!" errors))))
+
+(defn chars?
+  "Returns true if <x> is a char-array, false otherwise."
+  [x]
+  (if (nil? x)
+    false
+    (-> x class .getComponentType (= Character/TYPE))))
+
+(defn to-str
+  [x]
+  (cond
+    (bytes? x) (String. ^bytes x)
+    (chars? x) (apply str x)
+    :else x))

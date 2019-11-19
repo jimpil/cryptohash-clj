@@ -6,14 +6,16 @@
   (:import [at.favre.lib.crypto.bcrypt BCrypt
                                        BCrypt$Version
                                        BCrypt$Hasher
-                                       LongPasswordStrategies BCrypt$Verifyer]))
+                                       BCrypt$Verifyer
+                                       LongPasswordStrategies
+                                       LongPasswordStrategy]))
 
 (defonce VERSIONS
   {:v2a BCrypt$Version/VERSION_2A
    :v2b BCrypt$Version/VERSION_2B
    :v2x BCrypt$Version/VERSION_2X
    :v2y BCrypt$Version/VERSION_2Y
-   :v2y-no-null-terminator BCrypt$Version/VERSION_2Y_NO_NULL_TERMINATOR
+   :v2y-nnt BCrypt$Version/VERSION_2Y_NO_NULL_TERMINATOR
    :vbc BCrypt$Version/VERSION_BC})
 
 (defn- resolve-version
@@ -24,6 +26,7 @@
           (format "BCrypt version %s not supported..." k)))))
 
 (defn- resolve-strategy
+  ^LongPasswordStrategy
   [strategy ^BCrypt$Version v]
   (case strategy
     :strict   (LongPasswordStrategies/strict v)
@@ -34,13 +37,13 @@
 (declare new-hasher)
 (defn- bcrypt*
   [input ;; chars or bytes
-   {:keys [cost hasher]
-    :or {cost 12}
+   {:keys [cpu-cost hasher]
+    :or {cpu-cost 12} ;; less than 12 is not safe in 2019
     :as opts}
    f]
   (f (or hasher
          (new-hasher opts))
-       cost
+       cpu-cost
        input))
 
 (defn- to-chars
@@ -99,7 +102,7 @@
     (let [{:keys [version long-value-strategy]
            :or {version :v2a
                 long-value-strategy :sha512}} opts
-          v (resolve-version version)
+          ^BCrypt$Version v (resolve-version version)
           strategy (resolve-strategy long-value-strategy v)]
       (BCrypt/with v random/*PRNG* strategy))))
 
@@ -127,4 +130,4 @@
    <opts> must match the ones used to produce <hashed> and can include a
    pre-constructed :verifyer. Returns true/false."
   [x opts hashed]
-  (proto/verify x opts hashed))
+  (proto/verify x opts (ut/to-str hashed)))
