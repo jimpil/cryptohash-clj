@@ -7,10 +7,10 @@
 
 ## Features
 
-- stealth (optional zero-ing of arrays passed as input or transiently created)
-- PBKDF2 (w/ stealth)
-- BCRYPT (w/ stealth) 
-- SCRYPT (w/o stealth because the underlying Java lib deals with Strings only)
+- optional stealth mode (zero-ing of arrays passed as input or transiently created)
+- [PBKDF2](https://en.wikipedia.org/wiki/PBKDF2) (w/ stealth)
+- [BCRYPT](https://en.wikipedia.org/wiki/Bcrypt) (w/ stealth) 
+- [SCRYPT](https://en.wikipedia.org/wiki/Scrypt) (w/o stealth because the underlying Java lib deals with Strings only)
 - type consistent (return type matches the input type)
 - overly long value support (all algorithms)
 - highly configurable (where applicable/possible) and fully spec-ed
@@ -43,9 +43,9 @@ These will delegate to the right implementation according to the first parameter
 
 Note that all the supported algorithms produce values that include the params in them so strictly speaking there shouldn't be a need
 for passing any options to `verify-with`. However, there are some exceptions - for instance in pbkdf2 you can specify a custom separator 
-(subject to validity check). If you choose to do so, it needs to be known when verifying. Similarly with the bcrypt verifyer and its 
-version and long-value-strategy parameters (hasher/verifyer options must match). For complete piece of mind you can always rely on the 
-defaults which are quite modern/safe.   
+(subject to validition). If you choose to do so, it needs to be known when verifying. Similarly with the bcrypt verifyer and its 
+`version` and `long-value-strategy` parameters (hasher/verifyer options must match). For complete piece of mind you can always rely on the 
+defaults which are quite modern and safe (at the time of this writing).   
 
 ### cryptohash-clj.impl.{algorithm}
 If you don't want to go via the multi-methods, you can go via the individual implementation namespaces.
@@ -62,7 +62,12 @@ Can be configured with the following options:
 - `:separator`  (defaults to `\$`)
 - `:iterations` (defaults to `1,000,000`)
 - `:algo` (defaults to `:hmac+sha512`, but `:hmac+sha256` and `:hmac+sha1` are valid choices)
-- `:key-length` (defaults to the native output length of `:algo` - 64, 32, 20 respectively)
+- `:key-length` (defaults to the native output length of `:algo` - 64, 32, 20 bytes respectively)
+
+I would advise **against** overriding the default `key-length` as the wrong value can potentially make life easier to an attacker.
+You should certainly avoid providing a number of bits (bytes * 8) greater than the native output length of your chosen `algo` 
+as it makes life easier to an attacker. Providing less is safer, but don't think that it saves you any computation. 
+Therefore best to stick with the native output length.  
 
 #### BCRYPT
 
