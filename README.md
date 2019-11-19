@@ -41,6 +41,12 @@ These will delegate to the right implementation according to the first parameter
 => true
 ```
 
+Note that all the supported algorithms produce values that include the params in them so strictly speaking there shouldn't be a need
+for passing any options to `verify-with`. However, there are some exceptions - for instance in pbkdf2 you can specify a custom separator 
+(subject to validity check). If you choose to do so, it needs to be known when verifying. Similarly with the bcrypt verifyer and its 
+version and long-value-strategy parameters (hasher/verifyer options must match). For complete piece of mind you can always rely on the 
+defaults which are quite modern/safe.   
+
 ### cryptohash-clj.impl.{algorithm}
 If you don't want to go via the multi-methods, you can go via the individual implementation namespaces.
 Each of the three namespaces (`bcrypt.clj`, `scrypt.clj`, `pbkdf2.clj`) contains two public functions:
