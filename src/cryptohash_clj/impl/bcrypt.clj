@@ -1,133 +1,96 @@
 (ns cryptohash-clj.impl.bcrypt
   (:require [cryptohash-clj
              [proto :as proto]
-             [random :as random]
-             [util :as ut]])
-  (:import [at.favre.lib.crypto.bcrypt BCrypt
-                                       BCrypt$Version
-                                       BCrypt$Hasher
-                                       BCrypt$Verifyer
-                                       LongPasswordStrategies
-                                       LongPasswordStrategy]))
+             [globals :as glb]
+             [encode :as enc]])
+  (:import [org.bouncycastle.crypto.generators OpenBSDBCrypt]
+           [java.util Arrays]
+           [java.security MessageDigest]))
 
 (defonce VERSIONS
-  {:v2a BCrypt$Version/VERSION_2A
-   :v2b BCrypt$Version/VERSION_2B
-   :v2x BCrypt$Version/VERSION_2X
-   :v2y BCrypt$Version/VERSION_2Y
-   :v2y-nnt BCrypt$Version/VERSION_2Y_NO_NULL_TERMINATOR
-   :vbc BCrypt$Version/VERSION_BC})
+  #{:2a :2b :2y}) ;; '2a' is not backwards compatible
 
 (defn- resolve-version
-  ^BCrypt$Version [k]
-  (or (get VERSIONS k)
+  ^String [k]
+  (or (some-> (VERSIONS k) name)
       (throw
         (IllegalArgumentException.
           (format "BCrypt version %s not supported..." k)))))
 
-(defn- resolve-strategy
-  ^LongPasswordStrategy
-  [strategy ^BCrypt$Version v]
+
+(defn- adjust
+  ^bytes [^chars input strategy]
   (case strategy
-    :strict   (LongPasswordStrategies/strict v)
-    :truncate (LongPasswordStrategies/truncate v)
-    :sha512   (LongPasswordStrategies/hashSha512 v)))
+    :truncate (-> input enc/to-bytes (Arrays/copyOf 72))
+    ;; produces 32 bytes (44 ASCII chars in base64)
+    :sha256 (let [md (MessageDigest/getInstance "SHA-256")
+                  digest (.digest md (enc/to-bytes input))
+                  ret (enc/to-b64 digest)]
+              (when glb/*stealth?*
+                (Arrays/fill digest (byte 0)))
+              ret)))
 
 
-(declare new-hasher)
 (defn- bcrypt*
-  [input ;; chars or bytes
-   {:keys [cpu-cost hasher]
-    :or {cpu-cost 12} ;; less than 12 is not safe in 2019
-    :as opts}
-   f]
-  (f (or hasher
-         (new-hasher opts))
-       cpu-cost
-       input))
+  ^String
+  [^bytes input
+   {:keys [version long-value cpu-cost salt]
+    :or {version :2y ;; doesn't really matter
+         long-value :sha256
+         cpu-cost 12}}] ;; less than 12 is not safe in 2019
 
-(defn- to-chars
-  ^chars [^BCrypt$Hasher h cost ^chars x]
-  (.hashToChar h cost x))
 
-(defn- to-string
-  ^String [^BCrypt$Hasher h cost ^chars x]
-  (.hashToString h cost x))
+  (let [v (resolve-version version)
+        ^bytes salt (or salt (glb/next-random-bytes! 16))
+        input-length (alength input)
+        ^chars input (cond-> input
+                             (> input-length 72)
+                             (adjust long-value)
+                             true enc/to-chars)]
+    (OpenBSDBCrypt/generate v input salt cpu-cost)))
 
-(defn- to-bytes
-  ^bytes [^BCrypt$Hasher h ^long cost ^bytes x]
-  (.hash h cost x))
 
-(declare new-verifyer)
-(defmacro ^:private hash= ;; has to be a macro to avoid reflection
-  [raw-chars opts encrypted]
-  `(let [opts# ~opts
-         ^BCrypt$Verifyer verifyer# (or (:verifyer opts#)
-                                        (new-verifyer opts#))]
-     (-> verifyer#
-         (.verify ~raw-chars ~encrypted)
-         .verified)))
+(defn hash=
+  [^chars raw-chars ^String hashed]
+  (OpenBSDBCrypt/checkPassword hashed raw-chars))
 
 (extend-protocol proto/IHashable
 
   (Class/forName "[C") ;; char-arrays
   (proto/chash [this opts]
-    (bcrypt* this opts to-chars))
-  (proto/verify [this opts hashed]
-    (hash= ^chars this opts ^chars hashed))
+    (bcrypt* (enc/to-bytes this) opts))
+  (proto/verify [this _ hashed]
+    (hash= this hashed))
 
   String
   (proto/chash [this opts]
-    (bcrypt* (.toCharArray this) opts to-string))
+    (bcrypt* (.getBytes this) opts))
   (proto/verify [this opts hashed]
-    (hash= (.toCharArray this) opts ^String hashed))
+    (hash= (.toCharArray this) hashed))
   )
 
 (extend-protocol proto/IHashable
   (Class/forName "[B") ;; byte-arrays
   (proto/chash [this opts]
-    (bcrypt* this opts to-bytes))
+    (bcrypt* this opts))
   (proto/verify [this opts hashed]
-    (hash= (ut/bytes->chars this) opts ^bytes hashed)))
+    (hash= (enc/to-chars this) hashed)))
 ;;=======================================================
-
-(defn new-hasher
-  "Returns a BCrypt hasher object with the given version (see `VERSIONS`),
-   and strategy (:strict/:truncate/:sha512 - applicable for values larger
-   than 72 bytes). Can be reused via the :hasher option key (see `chash*`)."
-  ^BCrypt$Hasher
-  [opts]
-  (if (= :default opts)
-    (BCrypt/withDefaults)
-    (let [{:keys [version long-value-strategy]
-           :or {version :v2a
-                long-value-strategy :sha512}} opts
-          ^BCrypt$Version v (resolve-version version)
-          strategy (resolve-strategy long-value-strategy v)]
-      (BCrypt/with v random/*PRNG* strategy))))
-
-(defn new-verifyer
-  ^BCrypt$Verifyer
-  [opts]
-  (if (= :default opts)
-    (BCrypt/verifyer)
-    (let [{:keys [version long-value-strategy]
-           :or {version :v2a
-                long-value-strategy :sha512}} opts
-          v (resolve-version version)
-          strategy (resolve-strategy long-value-strategy v)]
-      (BCrypt/verifyer v strategy))))
 
 (defn chash
   "Main entry point for hashing <x> (String/bytes/chars) using BCrypt.
    <opts> must inlude a :cost key and either a pre-constructed :hasher,
    or options per `new-hasher`. The return value type is dictated by <x>."
-  [x opts]
-  (proto/chash x opts))
+  ([x]
+   (chash x nil))
+  ([x opts]
+   (proto/chash x opts)))
 
 (defn verify
   "Main entry point for verifying that <x> (String/bytes/chars) matches <hashed>.
    <opts> must match the ones used to produce <hashed> and can include a
    pre-constructed :verifyer. Returns true/false."
-  [x opts hashed]
-  (proto/verify x opts (ut/to-str hashed)))
+  ([x hashed]
+   (verify x nil hashed))
+  ([x opts hashed]
+   (proto/verify x opts (enc/to-str hashed))))

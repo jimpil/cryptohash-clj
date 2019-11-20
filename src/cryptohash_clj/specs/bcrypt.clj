@@ -3,15 +3,13 @@
 
 
 (s/def ::cpu-cost
-  pos-int?) ;; 2^n where n => cost
+  #(>= 31 % 4)) ;; 4-31 inclusive
 
 (s/def ::version
   #{:v2a :v2b :v2x :v2y :v2y-nnt :vbc})
 
-(s/def ::long-value-strategy
-  #{:strict :truncate :sha512})
+(s/def ::long-value
+  #{:truncate :sha256})
 
 (s/def ::options
-  (s/or
-    :defaults #{:default}
-    :opt-map (s/keys :opt-un [::cpu-cost ::version ::long-value-strategy])))
+  (s/keys :opt-un [::cpu-cost ::version ::long-value]))
