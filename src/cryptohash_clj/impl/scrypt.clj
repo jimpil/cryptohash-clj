@@ -38,7 +38,7 @@
   [^chars raw ^String hashed]
   (let [parts (str/split hashed #"\$")
         [cpu-cost mem-cost pfactor klength]
-        (map (comp enc/b64->int parts) (range 4))
+        (map (comp enc/int-from-b64-str parts) (range 4))
         salt (enc/from-b64-str (parts 4))
         raw-hashed (proto/chash raw {:salt salt
                                      :key-length klength

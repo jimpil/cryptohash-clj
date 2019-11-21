@@ -55,8 +55,8 @@
 (defn- hash=
   [raw hashed]
   (let [parts (str/split hashed #"\$")
-        iterations (enc/b64->int (parts 0))
-        mem-cost   (enc/b64->int (parts 1))
+        iterations (enc/int-from-b64-str (parts 0))
+        mem-cost   (enc/int-from-b64-str (parts 1))
         type       (keyword (parts 2))
         version    (keyword (parts 3))
         salt (enc/from-b64-str (parts 4))
@@ -69,7 +69,7 @@
                       :type type
                       :version version
                       :salt salt}
-                     pfactor    (assoc :pfactor    (enc/b64->int pfactor))
+                     pfactor    (assoc :pfactor    (enc/int-from-b64-str pfactor))
                      secret     (assoc :secret     (enc/from-b64-str secret))
                      additional (assoc :additional (enc/from-b64-str additional)))
         raw-hashed (proto/chash raw opts)]

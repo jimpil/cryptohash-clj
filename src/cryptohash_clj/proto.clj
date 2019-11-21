@@ -4,13 +4,14 @@
   (chash  [this opts])
   (verify [this opts hashed]))
 
-(defprotocol IEncoding
-  (to-str   [this])
-  (to-chars [this])
-  (to-bytes [this])
-  (to-hex   [this])
-  (to-b64   [this]))
+(defprotocol IConvertible
+  (toStr   ^String [this])
+  (toChars ^chars  [this])
+  (toBytes ^bytes  [this]))
 
-(defprotocol IDecoding
-  (from-b64-str [this])
-  (from-hex-str [this]))
+(defprotocol IBaseEncoding
+  (toHex      ^bytes [this])
+  (toB64      ^bytes [this])
+  (fromHexStr ^bytes [this])
+  (fromB64Str ^bytes [this]))
+

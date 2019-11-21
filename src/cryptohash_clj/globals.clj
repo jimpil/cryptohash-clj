@@ -5,8 +5,7 @@
 (def ^:const SEP \$)
 
 (def ^:dynamic ^Random *PRNG*
-  (doto (SecureRandom.)
-    (.nextLong)))
+  (SecureRandom.))
 
 (defn next-random-bytes!
   ^bytes [n]

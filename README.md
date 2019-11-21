@@ -4,17 +4,27 @@
   <img src="https://media.kasperskydaily.com/wp-content/uploads/sites/92/2014/04/06043900/hash.jpg"/>
 </p>
 
-
 ## Features
 
-- optional stealth mode (zero-ing of arrays passed as input or transiently created)
-- [PBKDF2](https://en.wikipedia.org/wiki/PBKDF2) (w/ stealth)
-- [BCRYPT](https://en.wikipedia.org/wiki/Bcrypt) (w/ stealth) 
-- [SCRYPT](https://en.wikipedia.org/wiki/Scrypt) (w/o stealth because the underlying Java lib deals with Strings only)
-- type consistent (return type matches the input type)
-- overly long value support (all algorithms)
-- highly configurable (where applicable/possible) and fully spec-ed
-- reflection-free (despite the heavy interop)
+### Major
+
+- [PBKDF2](https://en.wikipedia.org/wiki/PBKDF2)
+- [BCRYPT](https://en.wikipedia.org/wiki/Bcrypt)
+- [SCRYPT](https://en.wikipedia.org/wiki/Scrypt)
+- [ARGON2](https://en.wikipedia.org/wiki/Argon2)
+- optional _stealth-mode_ (zero-ing of arrays passed as input or transiently created)
+- API for dealing with `char`/`byte` arrays as input (key piece for _stealth-mode_)
+
+### Minor
+
+- Support for overly long value in BCrypt (truncate or SHA256)
+- Highly configurable with modern defaults
+- Fully spec-ed (but not enforced) 
+- Reflection-free (despite the heavy interop)
+- Single dependency
+
+## Why
+Because Clojure shouldn't be left out ;).
 
 ## Where
 
@@ -88,8 +98,16 @@ Can be configured with the following options:
 - `:mem-cost` (defaults to `8`)
 - `:pfactor` (parallelization factor - defaults to `1`)
 
-As noted earlier, scrypt is the only algorithm that deals with Strings exclusively (due to the underlying Java lib). 
-As a result, there is no point using stealth with it.
+#### ARGON2
+
+Can be configured with the following options:
+
+- `:type` (defaults to `:argon2id`)
+- `:version` (defaults to `:v13`)
+- `:key-length` (defaults to `32` bytes)
+- `:salt-length` (defaults to `16` bytes)
+- `:iterations` (defaults to `1000`) 
+- `:mem-cost` (defaults to `12`)
 
 ## Stealth mode
 

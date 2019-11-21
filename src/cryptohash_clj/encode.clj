@@ -24,7 +24,7 @@
   (^bytes [^bytes bs ^Base64$Encoder encoder]
    (.encode encoder bs)))
 
-(defn- bytes->base64-str
+#_(defn- bytes->base64-str
   "Encodes the specified byte array into a String using the Base64 encoding scheme."
   (^String [^bytes bs]
    (bytes->base64-str bs PLAIN-B64-ENCODER))
@@ -76,88 +76,96 @@
   (-> i
       BigInteger/valueOf
       .toByteArray
-      bytes->base64-str))
+      proto/toB64))
 
-(defn b64->int
-  [s]
-  (->> (base64-str->bytes s)
-       (BigInteger. 1)
-       long))
 ;;==========================================
-(extend-protocol proto/IEncoding
-  (Class/forName "[C")
-  (proto/to-chars [this] this)
-  (proto/to-str   [this] (apply str this))
-  (proto/to-bytes [this] (chars->bytes this))
-  (proto/to-b64   [this] (bytes->base64 (proto/to-bytes this)))
-  (proto/to-hex   [this] (proto/to-hex (proto/to-bytes this))))
-
-(extend-protocol proto/IEncoding
-  (Class/forName "[B")
-  (proto/to-chars [this] (bytes->chars this))
-  (proto/to-str   [this] (String. ^bytes this))
-  (proto/to-bytes [this] this)
-  (proto/to-b64   [this] (bytes->base64 this))
-  (proto/to-hex   [this] (Hex/encode ^bytes this)))
-
-(extend-protocol proto/IEncoding
-  String
-  (proto/to-chars [this] (.toCharArray ^String this))
-  (proto/to-str   [this] this)
-  (proto/to-bytes [this] (.getBytes ^String this))
-  (proto/to-b64   [this] (bytes->base64 (proto/to-bytes this)))
-  (proto/to-hex   [this] (proto/to-hex (proto/to-bytes this)))
-
-  Long
-  (to-bytes [this] (-> (ByteBuffer/allocate 8)
-                       (.putLong this)
-                       .array))
-  (proto/to-b64 [this] (int->b64 this))
+(extend-type (Class/forName "[C")
+  proto/IConvertible
+  (toChars [this] this)
+  (toStr [this] (apply str this))
+  (toBytes [this] (chars->bytes this))
+  proto/IBaseEncoding
+  (toB64 [this] (bytes->base64 (proto/toBytes this)))
+  (toHex [this] (proto/toHex (proto/toBytes this)))
   )
 
-(extend-protocol proto/IDecoding
-  String
-  (from-b64-str [this] (base64-str->bytes this))
-  (from-hex-str [this] (Hex/decode ^String this))
-
-  Long
-  (from-b64-str [this] (b64->int this))
-  (from-hex-str [this] (Hex/decode ^bytes (proto/to-bytes this)))
+(extend-type (Class/forName "[B")
+  proto/IConvertible
+  (toChars [this] (bytes->chars this))
+  (toStr [this] (String. ^bytes this))
+  (toBytes [this] this)
+  proto/IBaseEncoding
+  (toB64 [this] (bytes->base64 this))
+  (toHex [this] (Hex/encode ^bytes this))
   )
+
+
+(extend-type String
+  proto/IConvertible
+  (toChars [this] (.toCharArray this))
+  (toStr   [this] this)
+  (toBytes [this] (.getBytes this))
+  proto/IBaseEncoding
+  (toB64   [this] (bytes->base64 (proto/toBytes this)))
+  (toHex   [this] (proto/toHex (proto/toBytes this)))
+  (fromB64Str [this] (base64-str->bytes this))
+  (fromHexStr [this] (Hex/decode ^String this))
+  )
+
+(extend-type Long
+  proto/IConvertible
+  (toStr   [this] (.toString ^Long this))
+  (toChars [this] (.toCharArray (proto/toStr this)))
+  (toBytes [this] (-> (ByteBuffer/allocate 8) (.putLong this) .array))
+  proto/IBaseEncoding
+  (toB64 [this] (int->b64 this))
+  (toHex [this] (proto/toHex (proto/toBytes this)))
+  )
+
 ;;===========================================================
 
 (defn to-chars
   ^chars [x]
-  (proto/to-chars x))
+  (proto/toChars x))
 
 (defn to-bytes
   ^bytes [x]
-  (proto/to-bytes x))
+  (proto/toBytes x))
 
 (defn to-str
   ^String [x]
-  (proto/to-str x))
+  (proto/toStr x))
 
 (defn to-b64
   ^bytes [x]
-  (proto/to-b64 x))
+  (proto/toB64 x))
 
 (defn to-b64-str
   ^String [x]
-  (proto/to-str (proto/to-b64 x)))
+  (proto/toStr (proto/toB64 x)))
 
 (defn to-hex
   ^bytes [x]
-  (proto/to-hex x))
+  (proto/toHex x))
 
 (defn to-hex-str
   ^String [x]
-  (proto/to-str (proto/to-hex x)))
+  (proto/toStr (proto/toHex x)))
 
 (defn from-b64-str
   ^bytes [x]
-  (proto/from-b64-str x))
+  (proto/fromB64Str x))
+
+(defn int-from-b64-str
+  ^long [x]
+  (long
+    (BigInteger. 1 (proto/fromB64Str x))))
 
 (defn from-hex-str
   ^bytes [x]
-  (proto/from-hex-str x))
+  (proto/fromHexStr x))
+
+(defn int-from-hex-str
+  ^long [x]
+  (long
+    (BigInteger. 1 (proto/fromHexStr x))))

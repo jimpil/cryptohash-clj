@@ -14,28 +14,28 @@
     )
 
   (testing "PBKDF2 with char-array input"
-    (let [options {:iterations 1000} ;; low cost on purpose
+    (let [options {:iterations 100} ;; low cost on purpose
           hashed (hash-with :pbkdf2 (.toCharArray PASSWORD) options)]
       (is (string? hashed))
       (is (true? (verify-with :pbkdf2 (.toCharArray PASSWORD) options hashed))))
     )
 
   (testing "BCRYPT with String input"
-    (let [options {:cpu-cost 6} ;; low cost on purpose
+    (let [options {:cpu-cost 2} ;; low cost on purpose
           hashed (hash-with :bcrypt PASSWORD options)]
       (is (string? hashed))
       (is (true? (verify-with :bcrypt PASSWORD options hashed))))
     )
 
   (testing "BCRYPT with char-array input"
-    (let [options {:cpu-cost 7}
+    (let [options {:cpu-cost 2}
           hashed (hash-with :bcrypt (.toCharArray PASSWORD) options)]
       (is (string? hashed))
       (is (true? (verify-with :bcrypt (.toCharArray PASSWORD) options hashed))))
     )
 
   (testing "SCRYPT with String input"
-         (let [options {:cpu-cost 7
+         (let [options {:cpu-cost 2
                         :mem-cost 4} ;; low cost on purpose
                hashed (hash-with :scrypt PASSWORD options)]
            (is (string? hashed))
@@ -43,7 +43,7 @@
          )
 
   (testing "SCRYPT with char-array input"
-    (let [options {:cpu-cost 7
+    (let [options {:cpu-cost 2
                    :mem-cost 4} ;; low cost on purpose
           hashed (hash-with :scrypt (.toCharArray PASSWORD) options)]
       (is (string? hashed))

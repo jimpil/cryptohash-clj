@@ -5,7 +5,7 @@
 (s/def ::algo
   #{:hmac+sha1 :hmac+sha256 :hmac+sha512})
 
-(s/def ::key-length
+(s/def ::key-length ;; in bits
   (s/and pos-int? #(zero? (rem % 8))))
 
 (s/def ::salt-length
