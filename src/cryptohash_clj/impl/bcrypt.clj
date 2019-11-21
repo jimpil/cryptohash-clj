@@ -34,14 +34,15 @@
 (defn- bcrypt*
   ^String
   [^bytes input
-   {:keys [version long-value cpu-cost salt]
+   {:keys [version long-value cpu-cost salt salt-length]
     :or {version :2y ;; doesn't really matter
          long-value :sha256
-         cpu-cost 12}}] ;; less than 12 is not safe in 2019
+         salt-length 16
+         cpu-cost 13}}] ;; less than 12 is not safe in 2019
 
 
   (let [v (resolve-version version)
-        ^bytes salt (or salt (glb/next-random-bytes! 16))
+        ^bytes salt (or salt (glb/next-random-bytes! salt-length))
         input-length (alength input)
         ^chars input (cond-> input
                              (> input-length 72)
@@ -50,7 +51,7 @@
     (OpenBSDBCrypt/generate v input salt cpu-cost)))
 
 
-(defn hash=
+(defn- hash=
   [^chars raw-chars ^String hashed]
   (OpenBSDBCrypt/checkPassword hashed raw-chars))
 

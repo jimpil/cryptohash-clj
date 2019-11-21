@@ -65,7 +65,7 @@
   ^String
   [^chars pwd {:keys [algo salt salt-length key-length iterations separator]
                :or {algo :hmac+sha512
-                    iterations 1000000 ;; 1E6 iterations is a reasonable starting point
+                    iterations 250000
                     salt-length 16
                     separator \$}}]
 

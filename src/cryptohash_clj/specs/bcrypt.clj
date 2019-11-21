@@ -11,5 +11,8 @@
 (s/def ::long-value
   #{:truncate :sha256})
 
+(s/def ::salt-length
+  pos-int?)
+
 (s/def ::options
-  (s/keys :opt-un [::cpu-cost ::version ::long-value]))
+  (s/keys :opt-un [::cpu-cost ::version ::long-value ::salt-length]))

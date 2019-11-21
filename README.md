@@ -13,18 +13,18 @@
 - [SCRYPT](https://en.wikipedia.org/wiki/Scrypt)
 - [ARGON2](https://en.wikipedia.org/wiki/Argon2)
 - optional _stealth-mode_ (zero-ing of arrays passed as input or transiently created)
-- API for dealing with `char`/`byte` arrays as input (key piece for _stealth-mode_)
+- API for dealing with `char`/`byte` arrays as input (required for _stealth-mode_)
 
 ### Minor
 
-- Support for overly long value in BCrypt (truncate or SHA256)
-- Highly configurable with modern defaults
+- Support for values larger than 72 bytes) in BCrypt (truncate or SHA256)
+- Highly configurable (with modern/safe defaults)
 - Fully spec-ed (but not enforced) 
 - Reflection-free (despite the heavy interop)
 - Single dependency
 
 ## Why
-Because Clojure shouldn't be left out ;).
+Because Clojure deserves the best crypto-hashers ;)
 
 ## Where
 
@@ -53,26 +53,26 @@ These will delegate to the right implementation according to the first parameter
 
 Note that all the supported algorithms produce values that include the params in them so strictly speaking there shouldn't be a need
 for passing any options to `verify-with`. However, there are some exceptions - for instance in pbkdf2 you can specify a custom separator 
-(subject to validition). If you choose to do so, it needs to be known when verifying. Similarly with the bcrypt verifyer and its 
-`version` and `long-value-strategy` parameters (hasher/verifyer options must match). For complete piece of mind you can always rely on the 
-defaults which are quite modern and safe (at the time of this writing).   
+(subject to validition). If you choose to do so, it needs to be known when verifying. Similarly with BCrypt and its 
+`version` and `long-value` parameters. For complete piece of mind you can always rely on the defaults which are quite modern and safe (at the time of this writing).   
 
 ### cryptohash-clj.impl.{algorithm}
 If you don't want to go via the multi-methods, you can go via the individual implementation namespaces.
-Each of the three namespaces (`bcrypt.clj`, `scrypt.clj`, `pbkdf2.clj`) contains two public functions:
+Each of the three namespaces (`bcrypt.clj`, `scrypt.clj`, `pbkdf2.clj`, `argon2.clj`) contains two public functions:
 
-- `chash [raw opts]` 
+- `chash  [raw opts]` 
 - `verify [raw opts hashed]`
 
-## Details
+## Configuration details
 
 #### PBKDF2
 Can be configured with the following options:
 
 - `:separator`  (defaults to `\$`)
-- `:iterations` (defaults to `1,000,000`)
+- `:iterations` (defaults to `250,000`)
 - `:algo` (defaults to `:hmac+sha512`, but `:hmac+sha256` and `:hmac+sha1` are valid choices)
-- `:key-length` (defaults to the native output length of `:algo` - 64, 32, 20 bytes respectively)
+- `:salt-length` (defaults to `16` bytes)
+- `:key-length` (defaults to the native output length of `:algo` - 64, 32 and 20 bytes respectively)
 
 I would advise **against** overriding the default `key-length`.
 You should certainly avoid providing a number of bits (bytes * 8) greater than the native output length of your chosen `algo` 
@@ -83,17 +83,16 @@ best to stick with the native output length.
 
 Can be configured with the following options:
 
-- `:version` (defaults to `:v2a` but `:v2b`, `:v2x`, `:v2y`, `:v2y-nnt` and `:vbc` are valid choices) 
-- `:cpu-cost` (defaults to `12`)
-- `:long-value-strategy` (defaults to `:sha512`, but `:strict` and `:truncate` are valid choices)
-
-Note that specifically in bcrypt, hasher and verifyer objects are immutable/thread-safe, and therefore can be reused 
-(see `bcrypt/new-hasher` and `bcrypt/new-verifyer`). 
+- `:version` (defaults to `:v2y` but `:v2a` and `:v2b` are valid choices) 
+- `:salt-length` (defaults to `16` bytes)
+- `:cpu-cost` (defaults to `13`)
+- `:long-value` (defaults to `:sha256`, but `:truncate` is a valid choice)
 
 #### SCRYPT
 
 Can be configured with the following options:
 
+- `:salt-length` (defaults to `16` bytes)
 - `:cpu-cost` (defaults to `15`) 
 - `:mem-cost` (defaults to `8`)
 - `:pfactor` (parallelization factor - defaults to `1`)
@@ -106,6 +105,8 @@ Can be configured with the following options:
 - `:version` (defaults to `:v13`)
 - `:key-length` (defaults to `32` bytes)
 - `:salt-length` (defaults to `16` bytes)
+- `:secret` (bytes of some secret)
+- `:additional` (additional bytes to include)
 - `:iterations` (defaults to `1000`) 
 - `:mem-cost` (defaults to `12`)
 
@@ -114,10 +115,14 @@ Can be configured with the following options:
 Stealth mode is controlled by `cryptohash-clj.stealth/*stealth?*` (bound to `true`). 
 A convenience macro `with-stealth` is also provided in the same namespace for easy overriding.
 
-## Secure random bytes (for salting etc)
+## Secure random bytes (for salting etc.)
 
 All random bytes are produced via a global instance of `SecureRandom` which lives in `cryptohash-clj.random/*PRNG*`.
 A convenience macro `with-PRNG` is also provided in the same namespace for easy overriding.
+
+## Defaults performance
+This will, of course, vary from CPU to CPU, but all the defaults have been tuned to produce a time cost of around 500ms,
+on this (relatively modern) MacBook-Pro (2.8GHz quad-core Intel Core i7, Turbo Boost up to 3.8GHz, with 6MB shared L3 cache) from 2017.
 
 ## Requirements
 
@@ -127,9 +132,8 @@ A convenience macro `with-PRNG` is also provided in the same namespace for easy 
 ## Alternatives
 [crypto-password](https://github.com/weavejester/crypto-password) is the obvious alternative here.
 However it lacks an api for bytes/chars (even if the underlying Java lib supports it), stealth-mode, 
-and generally speaking is less configurable.
-However, if you're already using it and are content with using String as the base type (as opposed to bytes or chars), 
-there is no real value to switching.
+and generally speaking is less configurable. Moreover, it comes with several dependencies.
+However, that's **not** to say that if you're already using it and are perfectly content with it you should change.
   
 
 ## License
