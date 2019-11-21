@@ -19,4 +19,5 @@
                   ]
   :deploy-repositories [["releases" :clojars]] ;; lein release :patch
   :signing {:gpg-key "jimpil1985@gmail.com"}
-  :repl-options {:init-ns cryptohash-clj.api})
+  ;:repl-options {:init-ns cryptohash-clj.api}
+  )

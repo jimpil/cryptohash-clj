@@ -50,23 +50,23 @@
 (extend-protocol proto/IHashable
 
   (Class/forName "[C") ;; char-arrays
-  (proto/chash [this opts]
+  (chash [this opts]
     (scrypt* (enc/to-bytes this) opts))
-  (proto/verify [this _ hashed]
+  (verify [this _ hashed]
     (hash= this hashed))
 
   String
   (proto/chash [this opts]
     (scrypt* (enc/to-bytes this) opts))
-  (proto/verify [this opts hashed]
+  (verify [this opts hashed]
     (hash= (enc/to-chars this) hashed))
   )
 
 (extend-protocol proto/IHashable
   (Class/forName "[B") ;; byte-arrays
-  (proto/chash [this opts]
+  (chash [this opts]
     (scrypt* this opts))
-  (proto/verify [this opts hashed]
+  (verify [this opts hashed]
     (hash= (enc/to-chars this) hashed)))
 
 ;;====================================================
