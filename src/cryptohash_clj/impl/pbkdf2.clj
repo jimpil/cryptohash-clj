@@ -1,6 +1,5 @@
 (ns cryptohash-clj.impl.pbkdf2
   (:require [cryptohash-clj
-             [proto :as proto]
              [globals :as glb]
              [equality :as eq]
              [util :as ut]
@@ -9,6 +8,10 @@
   (:import [javax.crypto SecretKeyFactory]
            [javax.crypto.spec PBEKeySpec]
            [java.util Arrays]))
+
+(defprotocol IHashable
+  (chash  [this opts])
+  (verify [this opts hashed]))
 
 (defonce algorithms
   {:hmac+sha1   "PBKDF2WithHmacSHA1"     ;; JDK7
@@ -30,10 +33,10 @@
                         (if (= algorithm "hmac+sha1")
                           (parts 2)
                           (parts 3)))
-        raw-hashed (proto/chash x (assoc opts :salt salt
-                                              :key-length klength
-                                              :iterations iterations
-                                              :algo (keyword algorithm)))]
+        raw-hashed (chash x (assoc opts :salt salt
+                                        :key-length klength
+                                        :iterations iterations
+                                        :algo (keyword algorithm)))]
     (eq/hash= raw-hashed hashed)))
 
 (defn- invalid-separator?
@@ -104,7 +107,7 @@
          salt-b64                    separator
          (enc/to-b64-str hashed-pwd))))
 
-(extend-protocol proto/IHashable
+(extend-protocol IHashable
 
   (Class/forName "[C") ;; char-arrays
   (chash [this opts]
@@ -114,13 +117,12 @@
 
   String
   (chash [this opts]
-    (println "bika3")
     (pbkdf2* (enc/to-chars this) opts))
   (verify [this opts hashed]
     (hash= this opts hashed))
   )
 
-(extend-protocol proto/IHashable
+(extend-protocol IHashable
   (Class/forName "[B") ;; byte-arrays
   (chash [this opts]
     (let [ret (pbkdf2*  (enc/to-chars this) opts)]
@@ -131,20 +133,20 @@
     (hash= this opts hashed)))
 
 ;;===================================
-(defn chash
+(defn chash*
   "Main entry point for hashing <x> (String/bytes/chars) using BCrypt.
    <opts> must inlude a :cost key and either a pre-constructed :hasher,
    or options per `new-hasher`. The return value type is dictated by <x>."
   ([x]
-   (chash x nil))
+   (chash* x nil))
   ([x opts]
-   (proto/chash x opts)))
+   (chash x opts)))
 
-(defn verify
+(defn verify*
   "Main entry point for verifying that <x> (String/bytes/chars) matches <hashed>.
    <opts> must match the ones used to produce <hashed> and can include a
    pre-constructed :verifyer. Returns true/false."
   ([x hashed]
-   (verify x nil hashed))
+   (verify* x nil hashed))
   ([x opts hashed]
-   (proto/verify x opts (enc/to-str hashed))))
+   (verify x opts (enc/to-str hashed))))

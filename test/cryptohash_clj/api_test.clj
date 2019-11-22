@@ -21,14 +21,14 @@
     )
 
   (testing "BCRYPT with String input"
-    (let [options {:cpu-cost 2} ;; low cost on purpose
+    (let [options {:cpu-cost 4} ;; low cost on purpose
           hashed (hash-with :bcrypt PASSWORD options)]
       (is (string? hashed))
       (is (true? (verify-with :bcrypt PASSWORD options hashed))))
     )
 
   (testing "BCRYPT with char-array input"
-    (let [options {:cpu-cost 2}
+    (let [options {:cpu-cost 4}
           hashed (hash-with :bcrypt (.toCharArray PASSWORD) options)]
       (is (string? hashed))
       (is (true? (verify-with :bcrypt (.toCharArray PASSWORD) options hashed))))

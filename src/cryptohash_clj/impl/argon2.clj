@@ -1,12 +1,15 @@
 (ns cryptohash-clj.impl.argon2
   (:require [clojure.string :as str]
             [cryptohash-clj
-             [proto :as proto]
              [globals :as glb]
              [equality :as eq]
              [encode :as enc]])
   (:import [org.bouncycastle.crypto.generators Argon2BytesGenerator]
            [org.bouncycastle.crypto.params Argon2Parameters Argon2Parameters$Builder]))
+
+(defprotocol IHashable
+  (chash  [this opts])
+  (verify [this opts hashed]))
 
 (def VERSIONS
   {:v10 Argon2Parameters/ARGON2_VERSION_10
@@ -72,11 +75,11 @@
                      pfactor    (assoc :pfactor    (enc/int-from-b64-str pfactor))
                      secret     (assoc :secret     (enc/from-b64-str secret))
                      additional (assoc :additional (enc/from-b64-str additional)))
-        raw-hashed (proto/chash raw opts)]
+        raw-hashed (chash raw opts)]
     (eq/hash= raw-hashed hashed)))
 
 
-(extend-protocol proto/IHashable
+(extend-protocol IHashable
 
   (Class/forName "[C") ;; char-arrays
   (chash [this opts]
@@ -91,7 +94,7 @@
     (hash= this hashed))
   )
 
-(extend-protocol proto/IHashable
+(extend-protocol IHashable
   (Class/forName "[B") ;; byte-arrays
   (chash [this opts]
     (argon2* (enc/to-chars this) opts))
@@ -99,18 +102,18 @@
     (hash= this hashed)))
 ;;=======================================================
 
-(defn chash
+(defn chash*
   "Main entry point for hashing <x> (String/bytes/chars) using Argon2."
   ([x]
-   (chash x nil))
+   (chash* x nil))
   ([x opts]
-   (proto/chash x opts)))
+   (chash x opts)))
 
-(defn verify
+(defn verify*
   "Main entry point for verifying that <x> (String/bytes/chars) matches <hashed>.
    <opts> must match the ones used to produce <hashed> and can include a
    pre-constructed :verifyer. Returns true/false."
   ([x hashed]
-   (verify x nil hashed))
+   (verify* x nil hashed))
   ([x opts hashed]
-   (proto/verify x opts (enc/to-str hashed))))
+   (verify x opts (enc/to-str hashed))))

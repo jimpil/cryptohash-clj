@@ -1,11 +1,14 @@
 (ns cryptohash-clj.impl.bcrypt
   (:require [cryptohash-clj
-             [proto :as proto]
              [globals :as glb]
              [encode :as enc]])
   (:import [org.bouncycastle.crypto.generators OpenBSDBCrypt]
            [java.util Arrays]
            [java.security MessageDigest]))
+
+(defprotocol IHashable
+  (chash  [this opts])
+  (verify [this opts hashed]))
 
 (defonce VERSIONS
   #{:2a :2b :2y}) ;; '2a' is not backwards compatible
@@ -55,7 +58,7 @@
   [^chars raw-chars ^String hashed]
   (OpenBSDBCrypt/checkPassword hashed raw-chars))
 
-(extend-protocol proto/IHashable
+(extend-protocol IHashable
 
   (Class/forName "[C") ;; char-arrays
   (chash [this opts]
@@ -70,7 +73,7 @@
     (hash= (.toCharArray this) hashed))
   )
 
-(extend-protocol proto/IHashable
+(extend-protocol IHashable
   (Class/forName "[B") ;; byte-arrays
   (chash [this opts]
     (bcrypt* this opts))
@@ -78,20 +81,20 @@
     (hash= (enc/to-chars this) hashed)))
 ;;=======================================================
 
-(defn chash
+(defn chash*
   "Main entry point for hashing <x> (String/bytes/chars) using BCrypt.
    <opts> must inlude a :cost key and either a pre-constructed :hasher,
    or options per `new-hasher`. The return value type is dictated by <x>."
   ([x]
-   (chash x nil))
+   (chash* x nil))
   ([x opts]
-   (proto/chash x opts)))
+   (chash x opts)))
 
-(defn verify
+(defn verify*
   "Main entry point for verifying that <x> (String/bytes/chars) matches <hashed>.
    <opts> must match the ones used to produce <hashed> and can include a
    pre-constructed :verifyer. Returns true/false."
   ([x hashed]
-   (verify x nil hashed))
+   (verify* x nil hashed))
   ([x opts hashed]
-   (proto/verify x opts (enc/to-str hashed))))
+   (verify x opts (enc/to-str hashed))))

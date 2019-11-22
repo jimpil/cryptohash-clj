@@ -1,6 +1,5 @@
 (ns cryptohash-clj.encode
   (:require [cryptohash-clj
-             [proto :as proto]
              [globals :as glb]])
   (:import [java.nio.charset Charset]
            [java.nio ByteBuffer CharBuffer]
@@ -71,101 +70,110 @@
        (Arrays/fill (.array byte-buffer) (byte 0)))
      ret)))
 
-(defn- int->b64
-  [^long i]
-  (-> i
-      BigInteger/valueOf
-      .toByteArray
-      proto/toB64))
-
 ;;==========================================
+(defprotocol IConvertible
+  (toStr   ^String [this])
+  (toChars ^chars  [this])
+  (toBytes ^bytes  [this]))
+
+(defprotocol IBaseEncoding
+  (toHex      ^bytes [this])
+  (toB64      ^bytes [this])
+  (fromHexStr ^bytes [this])
+  (fromB64Str ^bytes [this]))
+
 (extend-type (Class/forName "[C")
-  proto/IConvertible
+  IConvertible
   (toChars [this] this)
   (toStr [this] (apply str this))
   (toBytes [this] (chars->bytes this))
-  proto/IBaseEncoding
-  (toB64 [this] (bytes->base64 (proto/toBytes this)))
-  (toHex [this] (proto/toHex (proto/toBytes this)))
+  IBaseEncoding
+  (toB64 [this] (bytes->base64 (toBytes this)))
+  (toHex [this] (toHex (toBytes this)))
   )
 
 (extend-type (Class/forName "[B")
-  proto/IConvertible
+  IConvertible
   (toChars [this] (bytes->chars this))
   (toStr [this] (String. ^bytes this))
   (toBytes [this] this)
-  proto/IBaseEncoding
+  IBaseEncoding
   (toB64 [this] (bytes->base64 this))
   (toHex [this] (Hex/encode ^bytes this))
   )
 
 
 (extend-type String
-  proto/IConvertible
+  IConvertible
   (toChars [this] (.toCharArray this))
   (toStr   [this] this)
   (toBytes [this] (.getBytes this))
-  proto/IBaseEncoding
-  (toB64   [this] (bytes->base64 (proto/toBytes this)))
-  (toHex   [this] (proto/toHex (proto/toBytes this)))
+  IBaseEncoding
+  (toB64   [this] (bytes->base64 (toBytes this)))
+  (toHex   [this] (toHex (toBytes this)))
   (fromB64Str [this] (base64-str->bytes this))
   (fromHexStr [this] (Hex/decode ^String this))
   )
 
 (extend-type Long
-  proto/IConvertible
+  IConvertible
   (toStr   [this] (.toString ^Long this))
-  (toChars [this] (.toCharArray (proto/toStr this)))
-  (toBytes [this] (-> (ByteBuffer/allocate 8) (.putLong this) .array))
-  proto/IBaseEncoding
-  (toB64 [this] (int->b64 this))
-  (toHex [this] (proto/toHex (proto/toBytes this)))
+  (toChars [this] (.toCharArray (toStr this)))
+  (toBytes [this] (-> (ByteBuffer/allocate 8) 
+                      (.putLong this) 
+                      .array))
+  IBaseEncoding
+  (toB64 [this] (-> this
+                    BigInteger/valueOf
+                    .toByteArray
+                    toB64))
+  (toHex [this] (toHex (toBytes this)))
   )
 
 ;;===========================================================
 
 (defn to-chars
   ^chars [x]
-  (proto/toChars x))
+  (toChars x))
 
 (defn to-bytes
   ^bytes [x]
-  (proto/toBytes x))
+  (toBytes x))
 
 (defn to-str
   ^String [x]
-  (proto/toStr x))
+  (toStr x))
 
 (defn to-b64
   ^bytes [x]
-  (proto/toB64 x))
+  (toB64 x))
 
 (defn to-b64-str
   ^String [x]
-  (proto/toStr (proto/toB64 x)))
+  (toStr (toB64 x)))
 
 (defn to-hex
   ^bytes [x]
-  (proto/toHex x))
+  (toHex x))
 
 (defn to-hex-str
   ^String [x]
-  (proto/toStr (proto/toHex x)))
+  (toStr (toHex x)))
 
 (defn from-b64-str
   ^bytes [x]
-  (proto/fromB64Str x))
+  (fromB64Str x))
 
 (defn int-from-b64-str
   ^long [x]
   (long
-    (BigInteger. 1 (proto/fromB64Str x))))
+    (BigInteger. 1 (fromB64Str x))))
 
 (defn from-hex-str
   ^bytes [x]
-  (proto/fromHexStr x))
+  (fromHexStr x))
 
 (defn int-from-hex-str
   ^long [x]
   (long
-    (BigInteger. 1 (proto/fromHexStr x))))
+    (BigInteger. 1 (fromHexStr x))))

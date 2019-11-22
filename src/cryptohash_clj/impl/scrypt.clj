@@ -1,6 +1,5 @@
 (ns cryptohash-clj.impl.scrypt
   (:require [cryptohash-clj
-             [proto :as proto]
              [encode :as enc]
              [util :as ut]]
             [cryptohash-clj.globals :as glb]
@@ -9,6 +8,9 @@
   (:import [org.bouncycastle.crypto.generators SCrypt]
            (java.util Arrays)))
 
+(defprotocol IHashable
+  (chash  [this opts])
+  (verify [this opts hashed]))
 
 (defn- scrypt*
   ^String
@@ -40,14 +42,14 @@
         [cpu-cost mem-cost pfactor klength]
         (map (comp enc/int-from-b64-str parts) (range 4))
         salt (enc/from-b64-str (parts 4))
-        raw-hashed (proto/chash raw {:salt salt
-                                     :key-length klength
-                                     :cpu-cost cpu-cost
-                                     :mem-cost mem-cost
-                                     :pfactor pfactor})]
+        raw-hashed (chash raw {:salt salt
+                               :key-length klength
+                               :cpu-cost cpu-cost
+                               :mem-cost mem-cost
+                               :pfactor pfactor})]
     (eq/hash= raw-hashed hashed)))
 
-(extend-protocol proto/IHashable
+(extend-protocol IHashable
 
   (Class/forName "[C") ;; char-arrays
   (chash [this opts]
@@ -56,13 +58,13 @@
     (hash= this hashed))
 
   String
-  (proto/chash [this opts]
+  (chash [this opts]
     (scrypt* (enc/to-bytes this) opts))
   (verify [this opts hashed]
     (hash= (enc/to-chars this) hashed))
   )
 
-(extend-protocol proto/IHashable
+(extend-protocol IHashable
   (Class/forName "[B") ;; byte-arrays
   (chash [this opts]
     (scrypt* this opts))
@@ -70,16 +72,16 @@
     (hash= (enc/to-chars this) hashed)))
 
 ;;====================================================
-(defn chash
+(defn chash*
   ([x]
-   (chash x nil))
+   (chash* x nil))
   ([x opts]
-   (proto/chash x opts)))
+   (chash x opts)))
 
-(defn verify
+(defn verify*
   "Compare a raw string with a string encrypted with the [[encrypt]] function.
   Returns true if the string matches, false otherwise."
   ([x hashed]
-   (verify x nil hashed))
+   (verify* x nil hashed))
   ([x opts hashed]
-   (proto/verify x opts (enc/to-str hashed))))
+   (verify x opts (enc/to-str hashed))))
