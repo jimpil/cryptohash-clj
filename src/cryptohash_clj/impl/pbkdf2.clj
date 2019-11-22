@@ -114,6 +114,7 @@
 
   String
   (chash [this opts]
+    (println "bika3")
     (pbkdf2* (enc/to-chars this) opts))
   (verify [this opts hashed]
     (hash= this opts hashed))

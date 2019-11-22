@@ -14,7 +14,7 @@
   ^String
   [^bytes raw
    {:keys [cpu-cost key-length mem-cost pfactor salt salt-length]
-    :or {cpu-cost 15
+    :or {cpu-cost 17
          mem-cost 8
          key-length 192
          salt-length 16

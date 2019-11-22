@@ -42,7 +42,7 @@ This namespace contains two multi-methods:
 These will delegate to the right implementation according to the first parameter (`:pbkdf2`, `:bcrypt`, `:scrypt`). For example:
 
 ```clj
-(hash-with :pbkdf2 "_sUpErSeCrEt@1234!_" {:iterations 100})
+(hash-with :pbkdf2 "_sUpErSeCrEt@1234!_" {:algo :hmac+sha256})
 
 => "ZA==$AMA=$hmac+sha256$czrJNQ7CJEbfY5v4$hPuUvHFyGiF3aiE9VBsZZ1AUSehKRbQo"
 
@@ -93,7 +93,7 @@ Can be configured with the following options:
 Can be configured with the following options:
 
 - `:salt-length` (defaults to `16` bytes)
-- `:cpu-cost` (defaults to `15`) 
+- `:cpu-cost` (defaults to `17`) 
 - `:mem-cost` (defaults to `8`)
 - `:pfactor` (parallelization factor - defaults to `1`)
 
@@ -107,7 +107,7 @@ Can be configured with the following options:
 - `:salt-length` (defaults to `16` bytes)
 - `:secret` (bytes of some secret)
 - `:additional` (additional bytes to include)
-- `:iterations` (defaults to `1000`) 
+- `:iterations` (defaults to `100`) 
 - `:mem-cost` (defaults to `12`)
 
 ## Stealth mode
@@ -135,6 +135,8 @@ However it lacks an api for bytes/chars (even if the underlying Java lib support
 and generally speaking is less configurable. Moreover, it comes with several dependencies.
 However, that's **not** to say that if you're already using it and are perfectly content with it you should change.
   
+## CLI tool (native-image)
+TODO
 
 ## License
 

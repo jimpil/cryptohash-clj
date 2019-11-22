@@ -25,7 +25,7 @@
          version :v13
          key-length 32
          salt-length 16
-         iterations 1000
+         iterations 100
          mem-cost 12}}]
   (let [salt (or salt (glb/next-random-bytes! salt-length))
         params (cond-> (Argon2Parameters$Builder. (TYPES type))
