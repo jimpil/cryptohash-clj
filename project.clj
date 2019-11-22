@@ -21,7 +21,7 @@
                   ]
   :deploy-repositories [["releases" :clojars]] ;; lein release :patch
   :signing {:gpg-key "jimpil1985@gmail.com"}
-  ;:repl-options {:init-ns cryptohash-clj.api}
+  :repl-options {:init-ns cryptohash-clj.api}
 
   ;; CLI tool
   :plugins [[io.taylorwood/lein-native-image "0.3.1"]]
@@ -31,6 +31,8 @@
                  :graal-bin "/Library/Java/JavaVirtualMachines/graalvm-ce-java11-19.3.0/Contents/Home/bin"
                  ;; pass-thru args to GraalVM native-image, optional
                  :opts ["--verbose"
+                        "--no-fallback"
+                        "-H:+ReportExceptionStackTraces"
                         "--report-unsupported-elements-at-runtime"]}
   :main ^:skip-aot cryptohash-clj.cli.tool
   :jar-exclusions [#"tool.clj"]

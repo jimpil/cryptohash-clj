@@ -33,5 +33,6 @@
     (throw (ex-info "Invalid options detected!" errors))))
 
 (defn pow2
+  "Returns 2^exp."
   ^long [exp]
   (bit-shift-left 1 exp))
