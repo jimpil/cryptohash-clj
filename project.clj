@@ -7,6 +7,8 @@
   :dependencies [[org.clojure/clojure "1.10.1" :scope "provided"]
                  [org.bouncycastle/bcpkix-jdk15on "1.64"]]
 
+  :profiles {:dev {:dependencies [[org.clojure/tools.cli "0.4.2"]]}}
+
   :javac-options ["--release" "8"]
   :release-tasks [["vcs" "assert-committed"]
                   ["change" "version" "leiningen.release/bump-version" "release"]
@@ -28,6 +30,8 @@
                  ;; path to GraalVM home, optional
                  :graal-bin "/Library/Java/JavaVirtualMachines/graalvm-ce-java11-19.3.0/Contents/Home/bin"
                  ;; pass-thru args to GraalVM native-image, optional
-                 :opts ["--verbose"]}
+                 :opts ["--verbose"
+                        "--report-unsupported-elements-at-runtime"]}
   :main ^:skip-aot cryptohash-clj.cli.tool
+  :jar-exclusions [#"tool.clj"]
   )
