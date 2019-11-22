@@ -1,4 +1,4 @@
-(defproject cryptohash-clj "0.1.4-SNAPSHOT"
+(defproject cryptohash-clj "0.1.5-SNAPSHOT"
   :description "Cryptographic hashing facilities (pbkdf2/bcrypt/scrypt/argon2) for Clojure"
   :url "https://github.com/jimpil/cryptohash-clj"
   :license {:name "EPL-2.0 OR GPL-2.0-or-later WITH Classpath-exception-2.0"
@@ -20,4 +20,14 @@
   :deploy-repositories [["releases" :clojars]] ;; lein release :patch
   :signing {:gpg-key "jimpil1985@gmail.com"}
   ;:repl-options {:init-ns cryptohash-clj.api}
+
+  ;; CLI tool
+  :plugins [[io.taylorwood/lein-native-image "0.3.1"]]
+  :native-image {;; name of output image, optional
+                 :name "cryptohash"
+                 ;; path to GraalVM home, optional
+                 :graal-bin "/Library/Java/JavaVirtualMachines/graalvm-ce-java11-19.3.0/Contents/Home/bin"
+                 ;; pass-thru args to GraalVM native-image, optional
+                 :opts ["--verbose"]}
+  :main ^:skip-aot cryptohash-clj.cli.tool
   )
