@@ -47,7 +47,7 @@
   (let [v (resolve-version version)
         ^bytes salt (or salt (glb/next-random-bytes! salt-length))
         input-length (alength input)
-        tmp (byte-array (unchecked-inc-int input-length))
+        tmp (byte-array (unchecked-inc input-length))
         tmp-length (alength tmp)
         ^bytes input (cond-> input
                              (> input-length 72)
