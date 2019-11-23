@@ -48,34 +48,35 @@
   (let [v (resolve-version version)
         ^bytes salt (or salt (glb/next-random-bytes! salt-length))
         input-length (alength raw-input)
-        tmp (delay (byte-array (unchecked-inc-int input-length)))
+        tmp (delay (byte-array (unchecked-inc-int input-length))) ;; may not need this after all
         ^bytes input (cond-> raw-input
                              (> input-length MAX_BYTES)
                              (adjust long-value)
                              (< input-length MAX_BYTES)
                              (System/arraycopy 0 @tmp 0 (min (alength ^bytes @tmp) input-length)))
-        to-clear (if input
-                   [input]
-                   [@tmp raw-input]) ;; don't forget the raw input when it was not adjusted
+        to-clear (if (nil? input)
+                   [@tmp raw-input] ;; don't forget the raw input when it was not adjusted
+                   [input])
         input  (or input @tmp)
         hashed (BCrypt/generate input salt cpu-cost)
         cost-str (cond->> cpu-cost
                           (> 10 cpu-cost)
                           (str 0))]
+
     (apply glb/fill-bytes! to-clear)
 
     (str glb/SEP v glb/SEP
          cost-str  glb/SEP
-         (BCryptEncode/encodeData salt) ;; no separator between salt and hash
+         (BCryptEncode/encodeData salt) ;; no separator here
          (BCryptEncode/encodeData hashed))))
 
 
 (defn- hash=
   [^chars raw-chars ^String hashed]
   (let [parts (str/split hashed #"\$")
-        [v c s+h] (next (map parts (range 4)))
-        salt-b64 (subs s+h 0 22)
-        ;K (subs s+h 22 53)
+        [v c sh] (next (map parts (range 4)))
+        salt-b64 (subs sh 0 22)
+        ;K (subs sh 22 53)
         raw-hashed (chash* raw-chars {:version  (keyword v)
                                       :cpu-cost (Long/parseLong c)
                                       :salt     (BCryptEncode/decodeSaltString salt-b64)})]
