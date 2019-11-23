@@ -58,7 +58,7 @@
         cost-str (cond->> cpu-cost
                           (> 10 cpu-cost)
                           (str 0))]
-    (glb/fill-bytes! input (or input tmp))
+    (glb/fill-bytes! (or input tmp))
 
     (str glb/SEP v glb/SEP
          cost-str  glb/SEP
