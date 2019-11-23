@@ -9,10 +9,10 @@
   #{:v2a :v2b :v2x :v2y :v2y-nnt :vbc})
 
 (s/def ::long-value
-  #{:truncate :sha256})
+  #{:truncate :sha512})
 
 (s/def ::salt-length
   pos-int?)
 
 (s/def ::options
-  (s/keys :opt-un [::cpu-cost ::version ::long-value ::salt-length]))
+  (s/keys :opt-un [::cpu-cost ::version ::long-value]))

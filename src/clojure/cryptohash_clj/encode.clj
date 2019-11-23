@@ -85,7 +85,7 @@
 (extend-type (Class/forName "[C")
   IConvertible
   (toChars [this] this)
-  (toStr [this] (apply str this))
+  (toStr [this] (String. ^chars this))
   (toBytes [this] (chars->bytes this))
   IBaseEncoding
   (toB64 [this] (bytes->base64 (toBytes this)))

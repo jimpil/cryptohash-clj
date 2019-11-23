@@ -84,9 +84,8 @@ best to stick with the native output length.
 Can be configured with the following options:
 
 - `:version` (defaults to `:v2y` but `:v2a` and `:v2b` are valid choices) 
-- `:salt-length` (defaults to `16` bytes)
 - `:cpu-cost` (defaults to `13`)
-- `:long-value` (defaults to `:sha256`, but `:truncate` is a valid choice)
+- `:long-value` (defaults to `:sha512`, but `:truncate` is a valid choice)
 
 #### SCRYPT
 

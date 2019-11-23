@@ -24,6 +24,7 @@
     (let [options {:cpu-cost 4} ;; low cost on purpose
           hashed (hash-with :bcrypt PASSWORD options)]
       (is (string? hashed))
+      (is (= 60 (count hashed)))
       (is (true? (verify-with :bcrypt PASSWORD options hashed))))
     )
 
@@ -31,6 +32,7 @@
     (let [options {:cpu-cost 4}
           hashed (hash-with :bcrypt (.toCharArray PASSWORD) options)]
       (is (string? hashed))
+      (is (= 60 (count hashed)))
       (is (true? (verify-with :bcrypt (.toCharArray PASSWORD) options hashed))))
     )
 
