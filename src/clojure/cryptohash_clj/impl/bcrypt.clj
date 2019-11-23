@@ -53,7 +53,7 @@
                              (> input-length MAX_BYTES)
                              (adjust long-value)
                              (< input-length MAX_BYTES)
-                             (System/arraycopy 0 @tmp 0 (min (alength @tmp) input-length)))
+                             (System/arraycopy 0 @tmp 0 (min (alength ^bytes @tmp) input-length)))
         to-clear (if input
                    [input]
                    [@tmp raw-input]) ;; don't forget the raw input when it was not adjusted
