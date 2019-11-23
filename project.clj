@@ -7,11 +7,16 @@
   :dependencies [[org.clojure/clojure "1.10.1" :scope "provided"]
                  [org.bouncycastle/bcpkix-jdk15on "1.64"]]
 
-  :profiles {:dev {:dependencies [[org.clojure/tools.cli "0.4.2"]]}}
+  :profiles {:dev {:dependencies [[org.clojure/tools.cli "0.4.2"]]}
+             :uberjar {:aot :all
+                       :main cryptohash-clj.cli.tool
+                       :jar-exclusions []
+                       :dependencies [[org.clojure/tools.cli "0.4.2"]]}}
   :source-paths      ["src/clojure"]
   :java-source-paths ["src/java"]
-  :javac-options ["--release" "8"]
-
+  :javac-options     ["--release" "8"]
+  :jvm-opts          ["-Dclojure.compiler.direct-linking=true"]
+  :uberjar-name "cryptohash.jar"
   :release-tasks [["vcs" "assert-committed"]
                   ["change" "version" "leiningen.release/bump-version" "release"]
                   ["vcs" "commit"]

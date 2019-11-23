@@ -19,7 +19,7 @@
   [["-f" "--function FUNCTION" "Hashing function"
     :default :bcrypt
     :parse-fn keyword
-    :validate [hashers (str "Must be one of " (vec hashers))]]
+    :validate [hashers (str "Must be one of " (mapv name hashers))]]
 
    ["-i" "--input INPUT"  "Raw value"
     :validate [not-empty "Cannot be empty"]]
