@@ -11,12 +11,12 @@
              :uberjar {:aot :all
                        :main cryptohash-clj.cli.tool
                        :jar-exclusions []
+                       :uberjar-name "cryptohash.jar"
+                       :jvm-opts ["-Dclojure.compiler.direct-linking=true"]
                        :dependencies [[org.clojure/tools.cli "0.4.2"]]}}
   :source-paths      ["src/clojure"]
   :java-source-paths ["src/java"]
   :javac-options     ["--release" "8"]
-  :jvm-opts          ["-Dclojure.compiler.direct-linking=true"]
-  :uberjar-name "cryptohash.jar"
   :release-tasks [["vcs" "assert-committed"]
                   ["change" "version" "leiningen.release/bump-version" "release"]
                   ["vcs" "commit"]
