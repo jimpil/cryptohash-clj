@@ -30,7 +30,10 @@
   :native-image {;; name of output image, optional
                  :name "cryptohash"
                  ;; path to GraalVM home, optional
-                 :graal-bin "/Library/Java/JavaVirtualMachines/graalvm-ce-java11-19.3.0/Contents/Home/bin"
+                 :graal-bin
+                        "/Library/Java/JavaVirtualMachines/graalvm-ce-java11-19.3.0/Contents/Home/bin"
+                         ;"/home/dimitris/graalvm-ce-java11-19.3.0/bin"
+
                  ;; pass-thru args to GraalVM native-image, optional
                  :opts ["--verbose"
                         "--no-fallback"
