@@ -54,11 +54,12 @@
                              (adjust long-value)
                              (< input-length 72)
                              (System/arraycopy 0 tmp 0 (min tmp-length input-length)))
-        hashed (BCrypt/generate (or input tmp) salt cpu-cost)
+        input  (or input tmp)
+        hashed (BCrypt/generate input salt cpu-cost)
         cost-str (cond->> cpu-cost
                           (> 10 cpu-cost)
                           (str 0))]
-    (glb/fill-bytes! (or input tmp))
+    (glb/fill-bytes! input)
 
     (str glb/SEP v glb/SEP
          cost-str  glb/SEP
