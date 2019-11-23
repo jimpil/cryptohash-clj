@@ -16,7 +16,8 @@
 (def VERSIONS
   #{:2a :2b :2y}) ;; '2a' is not backwards compatible
 
-(def ^:const salt-length 16)
+(def ^:const ^long salt-length 16)
+(def ^:const ^long MAX_BYTES 72)
 
 (defn- resolve-version
   ^String [k]
@@ -29,7 +30,7 @@
 (defn- adjust
   ^bytes [^bytes input strategy]
   (let [ret (case strategy
-              :truncate (-> input enc/to-bytes (Arrays/copyOf 72))
+              :truncate (-> input enc/to-bytes (Arrays/copyOf MAX_BYTES))
               ;; produces 64 bytes - well within the limit
               :sha512 (let [md (MessageDigest/getInstance "SHA-512")] ;; 64 bytes
                         (.digest md input)))]
@@ -50,9 +51,9 @@
         tmp (byte-array (unchecked-inc-int input-length))
         tmp-length (alength tmp)
         ^bytes input (cond-> input
-                             (> input-length 72)
+                             (> input-length MAX_BYTES)
                              (adjust long-value)
-                             (< input-length 72)
+                             (< input-length MAX_BYTES)
                              (System/arraycopy 0 tmp 0 (min tmp-length input-length)))
         input  (or input tmp)
         hashed (BCrypt/generate input salt cpu-cost)
