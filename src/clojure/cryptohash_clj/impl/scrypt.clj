@@ -8,8 +8,8 @@
   (:import [org.bouncycastle.crypto.generators SCrypt]))
 
 (defprotocol IHashable
-  (chash  [this opts])
-  (verify [this opts hashed]))
+  (chash*  [this opts])
+  (verify* [this opts hashed]))
 
 (defn- scrypt*
   ^String
@@ -40,46 +40,46 @@
         [cpu-cost mem-cost pfactor klength]
         (map (comp #(Long/parseLong %) parts) (range 4))
         salt (enc/from-b64-str (parts 4))
-        raw-hashed (chash raw {:salt salt
-                               :key-length klength
-                               :cpu-cost cpu-cost
-                               :mem-cost mem-cost
-                               :pfactor pfactor})]
+        raw-hashed (chash* raw {:salt      salt
+                                :key-length klength
+                                :cpu-cost   cpu-cost
+                                :mem-cost   mem-cost
+                                :pfactor    pfactor})]
     (eq/hash= raw-hashed hashed)))
 
 (extend-protocol IHashable
 
   (Class/forName "[C") ;; char-arrays
-  (chash [this opts]
+  (chash* [this opts]
     (scrypt* (enc/to-bytes this) opts))
-  (verify [this _ hashed]
+  (verify* [this _ hashed]
     (hash= this hashed))
 
   String
-  (chash [this opts]
+  (chash* [this opts]
     (scrypt* (enc/to-bytes this) opts))
-  (verify [this opts hashed]
+  (verify* [this opts hashed]
     (hash= (enc/to-chars this) hashed))
   )
 
 (extend-protocol IHashable
   (Class/forName "[B") ;; byte-arrays
-  (chash [this opts]
+  (chash* [this opts]
     (scrypt* this opts))
-  (verify [this opts hashed]
+  (verify* [this opts hashed]
     (hash= (enc/to-chars this) hashed)))
 
 ;;====================================================
-(defn chash*
+(defn chash
   ([x]
-   (chash* x nil))
+   (chash x nil))
   ([x opts]
-   (chash x opts)))
+   (chash* x opts)))
 
-(defn verify*
+(defn verify
   "Compare a raw string with a string encrypted with the [[encrypt]] function.
   Returns true if the string matches, false otherwise."
   ([x hashed]
-   (verify* x nil hashed))
+   (verify x nil hashed))
   ([x opts hashed]
-   (verify x opts (enc/to-str hashed))))
+   (verify* x opts (enc/to-str hashed))))

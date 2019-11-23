@@ -8,8 +8,8 @@
            [org.bouncycastle.crypto.params Argon2Parameters Argon2Parameters$Builder]))
 
 (defprotocol IHashable
-  (chash  [this opts])
-  (verify [this opts hashed]))
+  (chash*  [this opts])
+  (verify* [this opts hashed]))
 
 (def VERSIONS
   {:v10 Argon2Parameters/ARGON2_VERSION_10
@@ -61,7 +61,7 @@
 
 (defn- hash=
   [raw hashed]
-  (let [parts (str/split hashed #"\$")
+  (let [parts      (str/split hashed #"\$")
         iterations (Long/parseLong (parts 0))
         mem-cost   (Long/parseLong (parts 1))
         type       (keyword (parts 2))
@@ -79,45 +79,45 @@
                      pfactor    (assoc :pfactor    pfactor)
                      secret     (assoc :secret     (enc/from-b64-str secret))
                      additional (assoc :additional (enc/from-b64-str additional)))
-        raw-hashed (chash raw opts)]
+        raw-hashed (chash* raw opts)]
     (eq/hash= raw-hashed hashed)))
 
 
 (extend-protocol IHashable
 
   (Class/forName "[C") ;; char-arrays
-  (chash [this opts]
+  (chash* [this opts]
     (argon2* this opts))
-  (verify [this _ hashed]
+  (verify* [this _ hashed]
     (hash= this hashed))
 
   String
-  (chash [this opts]
+  (chash* [this opts]
     (argon2* (enc/to-chars this) opts))
-  (verify [this opts hashed]
+  (verify* [this opts hashed]
     (hash= this hashed))
   )
 
 (extend-protocol IHashable
   (Class/forName "[B") ;; byte-arrays
-  (chash [this opts]
+  (chash* [this opts]
     (argon2* (enc/to-chars this) opts))
-  (verify [this opts hashed]
+  (verify* [this opts hashed]
     (hash= this hashed)))
 ;;=======================================================
 
-(defn chash*
+(defn chash
   "Main entry point for hashing <x> (String/bytes/chars) using Argon2."
   ([x]
-   (chash* x nil))
+   (chash x nil))
   ([x opts]
-   (chash x opts)))
+   (chash* x opts)))
 
-(defn verify*
+(defn verify
   "Main entry point for verifying that <x> (String/bytes/chars) matches <hashed>.
    <opts> must match the ones used to produce <hashed> and can include a
    pre-constructed :verifyer. Returns true/false."
   ([x hashed]
-   (verify* x nil hashed))
+   (verify x nil hashed))
   ([x opts hashed]
-   (verify x opts (enc/to-str hashed))))
+   (verify* x opts (enc/to-str hashed))))

@@ -1,7 +1,8 @@
 (ns cryptohash-clj.api-test
   (:require [clojure.test :refer :all]
             [cryptohash-clj.api :refer :all]
-            [cryptohash-clj.util :as ut]))
+            [cryptohash-clj.encode :as enc])
+  (:import (org.bouncycastle.crypto.generators OpenBSDBCrypt)))
 
 (defonce PASSWORD "_sUpErSeCrEt@1234!_")
 
@@ -15,9 +16,9 @@
 
   (testing "PBKDF2 with char-array input"
     (let [options {:iterations 100} ;; low cost on purpose
-          hashed (hash-with :pbkdf2 (.toCharArray PASSWORD) options)]
+          hashed (hash-with :pbkdf2 (enc/to-chars PASSWORD) options)]
       (is (string? hashed))
-      (is (true? (verify-with :pbkdf2 (.toCharArray PASSWORD) options hashed))))
+      (is (true? (verify-with :pbkdf2 (enc/to-chars PASSWORD) options hashed))))
     )
 
   (testing "BCRYPT with String input"
@@ -30,10 +31,13 @@
 
   (testing "BCRYPT with char-array input"
     (let [options {:cpu-cost 4}
-          hashed (hash-with :bcrypt (.toCharArray PASSWORD) options)]
+          hashed (hash-with :bcrypt (enc/to-chars PASSWORD) options)]
       (is (string? hashed))
       (is (= 60 (count hashed)))
-      (is (true? (verify-with :bcrypt (.toCharArray PASSWORD) options hashed))))
+      (is (true? (verify-with :bcrypt (enc/to-chars PASSWORD) options hashed)))
+      ;; make sure we match the Java impl exactly!
+      (is (true? (OpenBSDBCrypt/checkPassword hashed (enc/to-chars PASSWORD))))
+      )
     )
 
   (testing "SCRYPT with String input"
@@ -47,9 +51,9 @@
   (testing "SCRYPT with char-array input"
     (let [options {:cpu-cost 2
                    :mem-cost 4} ;; low cost on purpose
-          hashed (hash-with :scrypt (.toCharArray PASSWORD) options)]
+          hashed (hash-with :scrypt (enc/to-chars PASSWORD) options)]
       (is (string? hashed))
-      (is (true? (verify-with :scrypt (.toCharArray PASSWORD) nil hashed))))
+      (is (true? (verify-with :scrypt (enc/to-chars PASSWORD) nil hashed))))
     )
 
   (testing "ARGON2 with String input"
@@ -63,8 +67,8 @@
   (testing "ARGON2 with char-array input"
     (let [options {:iterations 2
                    :mem-cost 4} ;; low cost on purpose
-          hashed (hash-with :argon2 (.toCharArray PASSWORD) options)]
+          hashed (hash-with :argon2 (enc/to-chars PASSWORD) options)]
       (is (string? hashed))
-      (is (true? (verify-with :argon2 (.toCharArray PASSWORD) nil hashed))))
+      (is (true? (verify-with :argon2 (enc/to-chars PASSWORD) nil hashed))))
     )
   )

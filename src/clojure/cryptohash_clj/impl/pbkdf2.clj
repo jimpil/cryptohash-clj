@@ -9,8 +9,8 @@
            [javax.crypto.spec PBEKeySpec]))
 
 (defprotocol IHashable
-  (chash  [this opts])
-  (verify [this opts hashed]))
+  (chash*  [this opts])
+  (verify* [this opts hashed]))
 
 (def algorithms
   {:hmac+sha1   "PBKDF2WithHmacSHA1"     ;; JDK7
@@ -32,10 +32,10 @@
                         (if (= algorithm "hmac+sha1")
                           (parts 2)
                           (parts 3)))
-        raw-hashed (chash x (assoc opts :salt salt
-                                        :key-length klength
-                                        :iterations iterations
-                                        :algo (keyword algorithm)))]
+        raw-hashed (chash* x (assoc opts :salt salt
+                                         :key-length klength
+                                         :iterations iterations
+                                         :algo (keyword algorithm)))]
     (eq/hash= raw-hashed hashed)))
 
 (defn- invalid-separator?
@@ -107,42 +107,42 @@
 (extend-protocol IHashable
 
   (Class/forName "[C") ;; char-arrays
-  (chash [this opts]
+  (chash* [this opts]
     (pbkdf2* this opts))
-  (verify [this opts hashed]
+  (verify* [this opts hashed]
     (hash= this opts hashed))
 
   String
-  (chash [this opts]
+  (chash* [this opts]
     (pbkdf2* (enc/to-chars this) opts))
-  (verify [this opts hashed]
+  (verify* [this opts hashed]
     (hash= this opts hashed))
   )
 
 (extend-protocol IHashable
   (Class/forName "[B") ;; byte-arrays
-  (chash [this opts]
+  (chash* [this opts]
     (let [ret (pbkdf2*  (enc/to-chars this) opts)]
       (glb/fill-bytes! this)
       ret))
-  (verify [this opts hashed]
+  (verify* [this opts hashed]
     (hash= this opts hashed)))
 
 ;;===================================
-(defn chash*
+(defn chash
   "Main entry point for hashing <x> (String/bytes/chars) using BCrypt.
    <opts> must inlude a :cost key and either a pre-constructed :hasher,
    or options per `new-hasher`. The return value type is dictated by <x>."
   ([x]
-   (chash* x nil))
+   (chash x nil))
   ([x opts]
-   (chash x opts)))
+   (chash* x opts)))
 
-(defn verify*
+(defn verify
   "Main entry point for verifying that <x> (String/bytes/chars) matches <hashed>.
    <opts> must match the ones used to produce <hashed> and can include a
    pre-constructed :verifyer. Returns true/false."
   ([x hashed]
-   (verify* x nil hashed))
+   (verify x nil hashed))
   ([x opts hashed]
-   (verify x opts (enc/to-str hashed))))
+   (verify* x opts (enc/to-str hashed))))
