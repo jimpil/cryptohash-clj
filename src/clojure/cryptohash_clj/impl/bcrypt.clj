@@ -39,7 +39,7 @@
 
 (defn- bcrypt*
   ^String
-  [^bytes input
+  [^bytes raw-input
    {:keys [version long-value cpu-cost salt]
     :or {version :2y ;; doesn't really matter
          long-value :sha512
@@ -47,20 +47,22 @@
 
   (let [v (resolve-version version)
         ^bytes salt (or salt (glb/next-random-bytes! salt-length))
-        input-length (alength input)
-        tmp (byte-array (unchecked-inc-int input-length))
-        tmp-length (alength tmp)
-        ^bytes input (cond-> input
+        input-length (alength raw-input)
+        tmp (delay (byte-array (unchecked-inc-int input-length)))
+        ^bytes input (cond-> raw-input
                              (> input-length MAX_BYTES)
                              (adjust long-value)
                              (< input-length MAX_BYTES)
-                             (System/arraycopy 0 tmp 0 (min tmp-length input-length)))
-        input  (or input tmp)
+                             (System/arraycopy 0 @tmp 0 (min (alength @tmp) input-length)))
+        to-clear (if input
+                   [input]
+                   [@tmp raw-input]) ;; don't forget the raw input when it was not adjusted
+        input  (or input @tmp)
         hashed (BCrypt/generate input salt cpu-cost)
         cost-str (cond->> cpu-cost
                           (> 10 cpu-cost)
                           (str 0))]
-    (glb/fill-bytes! input)
+    (apply glb/fill-bytes! to-clear)
 
     (str glb/SEP v glb/SEP
          cost-str  glb/SEP
