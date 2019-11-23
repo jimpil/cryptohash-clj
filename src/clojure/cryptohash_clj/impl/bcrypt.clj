@@ -16,6 +16,8 @@
 (defonce VERSIONS
   #{:2a :2b :2y}) ;; '2a' is not backwards compatible
 
+(def ^:const salt-length 16)
+
 (defn- resolve-version
   ^String [k]
   (or (some-> (VERSIONS k) name)
@@ -41,7 +43,7 @@
          cpu-cost 13}}] ;; less than 12 is not safe in 2019
 
   (let [v (resolve-version version)
-        ^bytes salt (or salt (glb/next-random-bytes! 16))
+        ^bytes salt (or salt (glb/next-random-bytes! salt-length))
         ^bytes input (cond-> input
                              (> (alength input) 72)
                              (adjust long-value))
@@ -51,7 +53,7 @@
                           (str 0))]
     (str glb/SEP v glb/SEP
          cost-str  glb/SEP
-         (BCryptEncode/encodeData salt)
+         (BCryptEncode/encodeData salt) ;; no separator between salt and hash
          (BCryptEncode/encodeData hashed))))
 
 
