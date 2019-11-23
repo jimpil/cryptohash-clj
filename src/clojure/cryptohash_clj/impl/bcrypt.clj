@@ -87,9 +87,9 @@
 
   String
   (chash* [this opts]
-    (bcrypt* (.getBytes this) opts))
+    (bcrypt* (enc/to-bytes this) opts))
   (verify* [this opts hashed]
-    (hash= (.toCharArray this) hashed))
+    (hash= (enc/to-chars this) hashed))
   )
 
 (extend-protocol IHashable
