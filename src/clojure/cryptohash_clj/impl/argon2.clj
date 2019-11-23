@@ -43,28 +43,32 @@
         gen (doto (Argon2BytesGenerator.)
               (.init params))
         K (byte-array key-length)]
+
     (.generateBytes gen raw K 0 ^long key-length)
+    (glb/fill-chars! raw)
+    (some-> secret glb/fill-bytes!)
+
     (str
-      (enc/to-b64-str iterations) glb/SEP
-      (enc/to-b64-str mem-cost) glb/SEP
-      (name type) glb/SEP
+      iterations     glb/SEP
+      mem-cost       glb/SEP
+      (name type)    glb/SEP
       (name version) glb/SEP
       (enc/to-b64-str salt) glb/SEP
-      (enc/to-b64-str K) glb/SEP
-      (some-> pfactor enc/to-b64-str) glb/SEP
+      (enc/to-b64-str K)    glb/SEP
+      pfactor        glb/SEP
       (some-> secret enc/to-b64-str) glb/SEP
       (some-> additional enc/to-b64-str))))
 
 (defn- hash=
   [raw hashed]
   (let [parts (str/split hashed #"\$")
-        iterations (enc/int-from-b64-str (parts 0))
-        mem-cost   (enc/int-from-b64-str (parts 1))
+        iterations (Long/parseLong (parts 0))
+        mem-cost   (Long/parseLong (parts 1))
         type       (keyword (parts 2))
         version    (keyword (parts 3))
-        salt (enc/from-b64-str (parts 4))
+        salt       (enc/from-b64-str (parts 4))
         ;K    (ut/base64-str->bytes (parts 5))
-        pfactor    (get parts 6)
+        pfactor    (some-> (get parts 6) Long/parseLong)
         secret     (get parts 7)
         additional (get parts 8)
         opts (cond-> {:iterations iterations
@@ -72,7 +76,7 @@
                       :type type
                       :version version
                       :salt salt}
-                     pfactor    (assoc :pfactor    (enc/int-from-b64-str pfactor))
+                     pfactor    (assoc :pfactor    pfactor)
                      secret     (assoc :secret     (enc/from-b64-str secret))
                      additional (assoc :additional (enc/from-b64-str additional)))
         raw-hashed (chash raw opts)]

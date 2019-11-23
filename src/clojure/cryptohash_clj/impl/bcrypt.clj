@@ -13,7 +13,7 @@
   (chash  [this opts])
   (verify [this opts hashed]))
 
-(defonce VERSIONS
+(def VERSIONS
   #{:2a :2b :2y}) ;; '2a' is not backwards compatible
 
 (def ^:const salt-length 16)
@@ -28,11 +28,13 @@
 
 (defn- adjust
   ^bytes [^bytes input strategy]
-  (case strategy
-    :truncate (-> input enc/to-bytes (Arrays/copyOf 72))
-    ;; produces 64 bytes - well within the limit
-    :sha512 (let [md (MessageDigest/getInstance "SHA-512")] ;; 64 bytes
-              (.digest md input))))
+  (let [ret (case strategy
+              :truncate (-> input enc/to-bytes (Arrays/copyOf 72))
+              ;; produces 64 bytes - well within the limit
+              :sha512 (let [md (MessageDigest/getInstance "SHA-512")] ;; 64 bytes
+                        (.digest md input)))]
+    (glb/fill-bytes! input)
+    ret))
 
 (defn- bcrypt*
   ^String
@@ -45,12 +47,14 @@
   (let [v (resolve-version version)
         ^bytes salt (or salt (glb/next-random-bytes! salt-length))
         ^bytes input (cond-> input
-                             (> (alength input) 72)
-                             (adjust long-value))
+                              (> (alength input) 72)
+                              (adjust long-value))
         hashed (BCrypt/generate input salt cpu-cost)
         cost-str (cond->> cpu-cost
                           (> 10 cpu-cost)
                           (str 0))]
+    (glb/fill-bytes! input)
+
     (str glb/SEP v glb/SEP
          cost-str  glb/SEP
          (BCryptEncode/encodeData salt) ;; no separator between salt and hash

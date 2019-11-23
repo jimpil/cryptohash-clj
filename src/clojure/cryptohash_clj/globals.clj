@@ -1,8 +1,9 @@
 (ns cryptohash-clj.globals
   (:import [java.security SecureRandom]
-           [java.util Random]))
+           [java.util Random Arrays]))
 
 (def ^:const SEP \$)
+(def ^:const ^byte ZB (byte 0))
 
 (def ^:dynamic ^Random *PRNG*
   (SecureRandom.))
@@ -24,3 +25,15 @@
   [bool & body]
   (binding [*stealth?* ~bool]
     ~@body))
+
+(defn fill-bytes!
+  [& arys]
+  (when *stealth?*
+    (doseq [^bytes bs arys]
+      (Arrays/fill bs ZB))))
+
+(defn fill-chars!
+  [& arys]
+  (when *stealth?*
+    (doseq [^chars cs arys]
+      (Arrays/fill cs \u0000))))

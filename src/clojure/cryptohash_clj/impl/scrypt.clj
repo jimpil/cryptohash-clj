@@ -5,8 +5,7 @@
             [cryptohash-clj.globals :as glb]
             [cryptohash-clj.equality :as eq]
             [clojure.string :as str])
-  (:import [org.bouncycastle.crypto.generators SCrypt]
-           (java.util Arrays)))
+  (:import [org.bouncycastle.crypto.generators SCrypt]))
 
 (defprotocol IHashable
   (chash  [this opts])
@@ -25,22 +24,21 @@
         N (ut/pow2 cpu-cost)
         K (SCrypt/generate raw salt N mem-cost pfactor key-length)
         saltb64 (enc/to-b64-str salt)]
-    (when glb/*stealth?*
-      (Arrays/fill raw  (byte 0))
-      (Arrays/fill salt (byte 0)))
+
+    (glb/fill-bytes! raw)
     (str
-      (enc/to-b64-str cpu-cost)   glb/SEP
-      (enc/to-b64-str mem-cost)   glb/SEP
-      (enc/to-b64-str pfactor)    glb/SEP
-      (enc/to-b64-str key-length) glb/SEP
-      saltb64                     glb/SEP
+      cpu-cost   glb/SEP
+      mem-cost   glb/SEP
+      pfactor    glb/SEP
+      key-length glb/SEP
+      saltb64    glb/SEP
       (enc/to-b64-str K))))
 
 (defn- hash=
   [^chars raw ^String hashed]
   (let [parts (str/split hashed #"\$")
         [cpu-cost mem-cost pfactor klength]
-        (map (comp enc/int-from-b64-str parts) (range 4))
+        (map (comp #(Long/parseLong %) parts) (range 4))
         salt (enc/from-b64-str (parts 4))
         raw-hashed (chash raw {:salt salt
                                :key-length klength

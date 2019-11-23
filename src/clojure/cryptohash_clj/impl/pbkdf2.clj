@@ -6,14 +6,13 @@
              [encode :as enc]]
             [clojure.string :as str])
   (:import [javax.crypto SecretKeyFactory]
-           [javax.crypto.spec PBEKeySpec]
-           [java.util Arrays]))
+           [javax.crypto.spec PBEKeySpec]))
 
 (defprotocol IHashable
   (chash  [this opts])
   (verify [this opts hashed]))
 
-(defonce algorithms
+(def algorithms
   {:hmac+sha1   "PBKDF2WithHmacSHA1"     ;; JDK7
    :hmac+sha256 "PBKDF2WithHmacSHA256"   ;; JDK8
    :hmac+sha512 "PBKDF2WithHmacSHA512"}) ;; JDK9
@@ -24,8 +23,8 @@
   (let [sep           (str (:separator opts glb/SEP))
         sep-pattern   (ut/re-pattern-escaping sep)
         parts         (str/split hashed sep-pattern)
-        iterations    (enc/int-from-b64-str (parts 0))
-        klength       (enc/int-from-b64-str (parts 1))
+        iterations    (Long/parseLong (parts 0))
+        klength       (Long/parseLong (parts 1))
         algorithm     (if (= 5 (count parts))
                         (parts 2)
                         "hmac+sha1")
@@ -70,7 +69,7 @@
                :or {algo :hmac+sha512
                     iterations 250000
                     salt-length 16
-                    separator \$}}]
+                    separator glb/SEP}}]
 
   (when (invalid-separator? separator)
     (throw
@@ -97,14 +96,12 @@
         salt-b64 (enc/to-b64-str salt)
         hashed-pwd (.getEncoded (.generateSecret factory k))]
 
-    (when glb/*stealth?*
-      (Arrays/fill salt+x-chars \u0000)
-      (Arrays/fill salt (byte 0)))
+    (glb/fill-chars! pwd salt+x-chars)
 
-    (str (enc/to-b64-str iterations) separator
-         (enc/to-b64-str key-length) separator
-         (name algo)                 separator
-         salt-b64                    separator
+    (str iterations   separator
+         key-length   separator
+         (name algo)  separator
+         salt-b64     separator
          (enc/to-b64-str hashed-pwd))))
 
 (extend-protocol IHashable
@@ -126,8 +123,7 @@
   (Class/forName "[B") ;; byte-arrays
   (chash [this opts]
     (let [ret (pbkdf2*  (enc/to-chars this) opts)]
-      (when glb/*stealth?*
-        (Arrays/fill ^bytes this (byte 0)))
+      (glb/fill-bytes! this)
       ret))
   (verify [this opts hashed]
     (hash= this opts hashed)))
