@@ -1,7 +1,9 @@
 (ns cryptohash-clj.cli.tool
   (:refer-clojure :exclude [parse-opts])
-  (:require [clojure.tools.cli :refer [parse-opts]]
-            [cryptohash-clj.api :as api]
+  (:require [cryptohash-clj
+             [api :as api]
+             [globals :as glb]]
+            [clojure.tools.cli :refer [parse-opts]]
             [clojure.edn :as edn])
   (:gen-class))
 
@@ -41,4 +43,5 @@
         (println
           (if help
             summary
-            (api/hash-with function input opts)))))))
+            (glb/with-stealth false
+              (api/hash-with function input opts))))))))
