@@ -1,33 +1,20 @@
 (ns cryptohash-clj.equality)
 
-(defn- ?nth
-  [coll index]
-  (try
-    (nth coll index)
-    ;; 0 is not even a printable char
-    ;; so it can't possibly be part of the input
-    (catch IndexOutOfBoundsException _ 0)))
-
 (defn hash= ;; adapted from `crypto-equality`
-  "Test whether two sequences of characters or bytes are equal in a way that
-   protects against timing attacks. The comparison is done in linear-time wrt to
-   <a> (the hashed input). However, the hashed input is always of fixed length,
-   so the comparison is effectively in constant-time (per algorithm).
-   No early aborting takes place."
+  "Test whether two sequences of characters/bytes are equal in a way that
+   protects against timing attacks. Early aborting occurs if one/both
+   arguments are nil (one => false,  both => true)."
   [a b]
-  (let [a (some->> a not-empty (map int))
-        b (some->> b not-empty (map int))]
+  (let [a (some->> a not-empty (mapv int))
+        b (some->> b not-empty (mapv int))]
     (or
       (and (nil? a)
-           (nil? b))
-      (and (some? a)
+           (nil? b)) ;; both nil => true
+      (and (some? a) ;; one of them nil => false
            (some? b)
-           (->> a
-                count
-                range
-                (map #(bit-xor
-                        (?nth a %)
-                        (?nth b %)))
+           (->> (map bit-xor a b) ;; assume lengths match
                 (reduce bit-or)
-                zero?))
+                zero?)
+           (= (count a) ;; confirm it in constant-time at the end
+              (count b)))
       false)))
