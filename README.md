@@ -4,6 +4,10 @@
   <img src="https://media.kasperskydaily.com/wp-content/uploads/sites/92/2014/04/06043900/hash.jpg"/>
 </p>
 
+## Where
+
+[![Clojars Project](https://clojars.org/cryptohash-clj/latest-version.svg)](https://clojars.org/cryptohash-clj)
+
 ## Features
 
 ### Major
@@ -25,10 +29,6 @@
 
 ## Why
 Because Clojure deserves the best crypto-hashers ;)
-
-## Where
-
-[![Clojars Project](https://img.shields.io/clojars/v/cryptohash-clj.svg)](https://clojars.org/cryptohash-clj)
 
 ## Usage
 There are two ways to leverage `cryptohash-clj`. 
