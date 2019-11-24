@@ -16,15 +16,15 @@
 
 (defmacro with-PRNG
   [prng & body]
-  (binding [*PRNG* ~prng]
-    ~@body))
+  `(binding [*PRNG* ~prng]
+     ~@body))
 
 (def ^:dynamic *stealth?* true)
 
 (defmacro with-stealth
   [bool & body]
-  (binding [*stealth?* ~bool]
-    ~@body))
+  `(binding [*stealth?* ~bool]
+     ~@body))
 
 (defn fill-bytes!
   [& arys]
