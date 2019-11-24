@@ -12,12 +12,12 @@
 - [BCRYPT](https://en.wikipedia.org/wiki/Bcrypt)
 - [SCRYPT](https://en.wikipedia.org/wiki/Scrypt)
 - [ARGON2](https://en.wikipedia.org/wiki/Argon2)
-- optional _stealth-mode_ (zero-ing of arrays passed as input or transiently created)
+- _stealth-mode_ (optional zero-ing of arrays passed as input or transiently created)
 - API for dealing with `char`/`byte` arrays as input (required for _stealth-mode_)
 
 ### Minor
 
-- Support for values larger than 72 bytes) in BCrypt (truncate or SHA256)
+- Support for values larger than 72 bytes) in BCrypt (truncate or SHA512)
 - Highly configurable (with modern/safe defaults)
 - Fully spec-ed (but not enforced) 
 - Reflection-free (despite the heavy interop)
@@ -28,7 +28,7 @@ Because Clojure deserves the best crypto-hashers ;)
 
 ## Where
 
-TODO 
+[![Clojars Project](https://img.shields.io/clojars/v/cryptohash-clj.svg)](https://clojars.org/cryptohash-clj)
 
 ## Usage
 There are two ways to leverage `cryptohash-clj`. 
@@ -46,22 +46,23 @@ These will delegate to the right implementation according to the first parameter
 
 => "ZA==$AMA=$hmac+sha256$czrJNQ7CJEbfY5v4$hPuUvHFyGiF3aiE9VBsZZ1AUSehKRbQo"
 
-(verify-with :pbkdf2 "_sUpErSeCrEt@1234!_" {} *1)
+(verify-with :pbkdf2 "_sUpErSeCrEt@1234!_" *1)
 
 => true
 ```
 
 Note that all the supported algorithms produce values that include the params in them so strictly speaking there shouldn't be a need
 for passing any options to `verify-with`. However, there are some exceptions - for instance in pbkdf2 you can specify a custom separator 
-(subject to validition). If you choose to do so, it needs to be known when verifying. Similarly with BCrypt and its 
-`version` and `long-value` parameters. For complete piece of mind you can always rely on the defaults which are quite modern and safe (at the time of this writing).   
+(subject to validation). If you choose to do so, it needs to be known when verifying. Similarly with BCrypt and its 
+`version` and `long-value` parameters. For complete piece of mind you can always rely on the defaults which are quite modern and safe 
+(at the time of this writing).   
 
 ### cryptohash-clj.impl.{algorithm}
 If you don't want to go via the multi-methods, you can go via the individual implementation namespaces.
 Each of the three namespaces (`bcrypt.clj`, `scrypt.clj`, `pbkdf2.clj`, `argon2.clj`) contains two public functions:
 
-- `chash  [raw opts]` 
-- `verify [raw opts hashed]`
+- `chash  ([raw opts] [raw])` 
+- `verify ([raw opts hashed] [raw hashed])`
 
 ## Configuration details
 
@@ -118,10 +119,17 @@ A convenience macro `with-stealth` is also provided in the same namespace for ea
 
 All random bytes are produced via a global instance of `SecureRandom` which lives in `cryptohash-clj.random/*PRNG*`.
 A convenience macro `with-PRNG` is also provided in the same namespace for easy overriding.
+Note that technically speaking, all hashing implementations accept a custom salt.
+
+## Crypto comparison
+Equality comparison is performed in a way that resists timing attacks (see `cryptohash-clj.equality`). 
+The length of the data being compared is still discoverable by an attacker, but in the context of 
+cryptographic hashing this is not a concern. In fact, many crypto-hashers produce fixed/well-known key lengths. 
+
 
 ## Defaults performance
-This will, of course, vary from CPU to CPU, but all the defaults have been tuned to produce a time cost of around 500ms,
-on this (relatively modern) MacBook-Pro (2.8GHz quad-core Intel Core i7, Turbo Boost up to 3.8GHz, with 6MB shared L3 cache) from 2017.
+This will, of course, vary from CPU to CPU, but all the defaults have been tuned to produce a time cost of around 400-500 ms,
+on this (relatively modern) MacBook-Pro (2.8-3.8GHz quad-core Intel Core i7) from 2017.
 
 ## Requirements
 
@@ -132,10 +140,16 @@ on this (relatively modern) MacBook-Pro (2.8GHz quad-core Intel Core i7, Turbo B
 [crypto-password](https://github.com/weavejester/crypto-password) is the obvious alternative here.
 However it lacks an api for bytes/chars (even if the underlying Java lib supports it), stealth-mode, 
 and generally speaking is less configurable. Moreover, it comes with several dependencies.
-However, that's **not** to say that if you're already using it and are perfectly content with it you should change.
   
-## CLI tool (native-image)
-TODO
+## CLI tool
+For some obscure reason the project won't compile to a GRAAL (v19.3.0) native-image . However, I was pleasantly surprised to find out
+that with direct-linking enabled, uberjar startup time is dramatically improved. We're talking sub-second here, so even if I do eventually
+manage to produce a native-image, it will probably be huge (more than 50MB), and will provide somewhat diminishing returns 
+in terms of startup. Sure, it will start fast, but the (direct-linked) uberjar is also rather usable (and much smaller), especially 
+for calculating expensive hashes.
+
+Make your own with `lein uberjar` at the top-level directory of this repo (after you've cloned it). 
+The resulting uberjar supports a `-h` or `--help` flag. Custom options (if provided) are expected to be valid EDN. 
 
 ## License
 
