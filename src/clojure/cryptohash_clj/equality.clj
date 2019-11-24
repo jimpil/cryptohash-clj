@@ -2,7 +2,7 @@
 
 (defn hash= ;; adapted from `crypto-equality`
   "Test whether two sequences of characters/bytes are equal in a way that
-   protects against timing attacks. Early aborting occurs if one/both
+   protects against timing attacks. Early aborting occurs if one or both
    arguments are nil (one => false,  both => true)."
   [a b]
   (let [a (some->> a not-empty (mapv int))
