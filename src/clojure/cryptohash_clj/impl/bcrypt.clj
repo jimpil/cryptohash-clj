@@ -80,7 +80,7 @@
         raw-hashed (chash* raw-chars {:version  (keyword v)
                                       :cpu-cost (Long/parseLong c)
                                       :salt     (BCryptEncode/decodeSaltString salt-b64)})]
-    (eq/hash= hashed raw-hashed)))
+    (eq/hash= raw-hashed hashed)))
 
 (extend-protocol IHashable
 
