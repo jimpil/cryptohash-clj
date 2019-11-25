@@ -119,7 +119,6 @@ A convenience macro `with-stealth` is also provided in the same namespace for ea
 
 All random bytes are produced via a global instance of `SecureRandom` which lives in `cryptohash-clj.random/*PRNG*`.
 A convenience macro `with-PRNG` is also provided in the same namespace for easy overriding.
-Note that technically speaking, all hashing implementations accept a custom salt.
 
 ## Crypto comparison
 Equality comparison is performed in a way that resists timing attacks (see `cryptohash-clj.equality`). 
@@ -129,7 +128,7 @@ cryptographic hashing this is not a concern. In fact, many crypto-hashers produc
 
 ## Defaults performance
 This will, of course, vary from CPU to CPU, but all the defaults have been tuned to produce a time cost of around 400-500 ms,
-on this (relatively modern) MacBook-Pro (2.8-3.8GHz quad-core Intel Core i7) from 2017.
+on this (relatively modern) MacBook-Pro (2.8-3.8GHz Intel Core i7) from 2017.
 
 ## Requirements
 
