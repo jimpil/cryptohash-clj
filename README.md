@@ -43,20 +43,15 @@ These will delegate to the right implementation according to the first parameter
 
 ```clj
 (hash-with :pbkdf2 "_sUpErSeCrEt@1234!_" {:algo :hmac+sha256})
-
 => "250000$256$hmac+sha256$zv6x/KfjV1318e3kF1aWBQ$qXoIRxVrtVbMnABxh5eTbDfszyc/O4uZIV8QPsLkyhE"
 
-
 (verify-with :pbkdf2 "_sUpErSeCrEt@1234!_" *1)
-
 => true
 
 (hash-with :bcrypt "_sUpErSeCrEt@1234!_" {:cpu-cost 8})
-
 => "$2y$08$0mddgmeilGorJlk.t4JYXu/b/K7S4VOD9LkddsPGyyrJp0TsEaOIu"
 
 (verify-with :bcrypt "_sUpErSeCrEt@1234!_" *1)
-
 => true
 ```
 
