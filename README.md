@@ -57,9 +57,7 @@ These will delegate to the right implementation according to the first parameter
 
 Note that all the supported algorithms produce values that include the params in them so strictly speaking there shouldn't be a need
 for passing any options to `verify-with`. However, there are some exceptions - for instance in pbkdf2 you can specify a custom separator 
-(subject to validation). If you choose to do so, it needs to be known when verifying. Similarly with BCrypt and its 
-`version` and `long-value` parameters. For complete piece of mind you can always rely on the defaults which are quite modern and safe 
-(at the time of this writing).   
+(subject to validation). If you choose to do so, it needs to be known when verifying. Similarly with BCrypt and its `long-value` parameter. For piece of mind you can always rely on the defaults (for those parameters) which will allow you to verify w/o passing options.   
 
 ### cryptohash-clj.impl.{algorithm}
 If you don't want to go via the multi-methods, you can go via the individual implementation namespaces.
