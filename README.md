@@ -144,8 +144,9 @@ and generally speaking is less configurable. Moreover, it comes with several dep
   
 ## CLI tool
 
-GRAAL_VM native-images of the latest release (for Linux and MacOS) can be found [here](https://github.com/jimpil/cryptohash-clj/tree/master/native-images). 
-Uberjars can be made with `lein uberjar` at the root of the project. 
+[GRAAL_VM](https://www.graalvm.org/) [native](https://www.graalvm.org/docs/reference-manual/native-image/) executables of the latest release (for Linux and MacOS)
+ can be found in [this](https://github.com/jimpil/cryptohash-clj/tree/master/native-images) folder. 
+Uberjars can be made with `lein uberjar` at the root of the project (after cloning). 
 If you're in need of a cli-tool, don't rush to dismiss the humble uberjar. 
 It is less than half the size of the native-image, and with direct-linking enabled, you'll be (pleasantly) surprised by the ridiculously fast startup (we're talking sub-second here)!  
  
