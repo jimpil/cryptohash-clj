@@ -143,14 +143,13 @@ However it lacks an api for bytes/chars (even if the underlying Java lib support
 and generally speaking is less configurable. Moreover, it comes with several dependencies.
   
 ## CLI tool
-For some obscure reason the project won't compile to a GRAAL (v19.3.0) native-image . However, I was pleasantly surprised to find out
-that with direct-linking enabled, uberjar startup time is dramatically improved. We're talking sub-second here, so even if I do eventually
-manage to produce a native-image, it will probably be huge (more than 50MB), and will provide somewhat diminishing returns 
-in terms of startup. Sure, it will start fast, but the (direct-linked) uberjar is also rather usable (and much smaller), especially 
-for calculating expensive hashes.
 
-Make your own with `lein uberjar` at the top-level directory of this repo (after you've cloned it). 
-The resulting uberjar supports a `-h` or `--help` flag. Custom options (if provided) are expected to be valid EDN. 
+GRAAL_VM native-images of the latest release (for Linux and MacOS) can be found [here](https://github.com/jimpil/cryptohash-clj/tree/master/native-images). 
+Uberjars can be made with `lein uberjar` at the root of the project. 
+If you're in need of a cli-tool, don't rush to dismiss the humble uberjar. 
+It is less than half the size of the native-image, and with direct-linking enabled, you'll be (pleasantly) surprised by the ridiculously fast startup (we're talking sub-second here)!  
+ 
+In any case, the tool supports a `-h` (`--help`) flag which will print out the available options. Custom options per algorithm (`--opts`) are expected to be valid EDN (when provided). 
 
 ## License
 
