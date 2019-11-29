@@ -18,16 +18,16 @@
 (def cli-options
 
   [["-f" "--function FUNCTION" "Hashing function"
-    :default :bcrypt
+    :default "bcrypt"
     :parse-fn keyword
-    :validate [hashers (str "must be one of " (mapv name hashers))]]
+    :validate [hashers (str "Must be one of " (mapv name hashers) "!")]]
 
    ["-i" "--input INPUT"  "Raw value"
-    :validate [not-empty "cannot be empty"]]
+    :validate [not-empty "Cannot be empty!"]]
 
    ["-o" "--opts OPTIONS" "Options map"
     :parse-fn #(some-> % edn/read-string)
-    :validate [?map? "must be a Clojure map (if provided)"]]
+    :validate [?map? "Must be a Clojure map (if provided)!"]]
 
    ;; A boolean option defaulting to nil
    ["-h" "--help"]])
@@ -43,4 +43,5 @@
           (if help
             summary
             (glb/with-stealth false
-              (api/hash-with function input opts))))))))
+              (api/hash-with function input opts))
+            ))))))

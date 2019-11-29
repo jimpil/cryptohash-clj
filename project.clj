@@ -4,7 +4,8 @@
   :license {:name "EPL-2.0 OR GPL-2.0-or-later WITH Classpath-exception-2.0"
             :url "https://www.eclipse.org/legal/epl-2.0/"}
 
-  :dependencies [[org.clojure/clojure "1.10.1" :scope "provided"]
+  :dependencies [;[org.clojure/clojure "1.10.1" :scope "provided"]
+                 [org.clojure/clojure "1.9.0"] ;; for native-image
                  [org.bouncycastle/bcpkix-jdk15on "1.64"]]
 
   :profiles {:dev {:dependencies [[org.clojure/tools.cli "0.4.2"]]}
@@ -13,7 +14,8 @@
                        :jar-exclusions []
                        :uberjar-name "cryptohash.jar"
                        :jvm-opts ["-Dclojure.compiler.direct-linking=true"]
-                       :dependencies [[org.clojure/tools.cli "0.4.2"]]}}
+                       :dependencies [[org.clojure/tools.cli "0.4.2"]]
+                       }}
   :source-paths      ["src/clojure"]
   :java-source-paths ["src/java"]
   :javac-options     ["--release" "8"]
@@ -42,8 +44,14 @@
                  ;; pass-thru args to GraalVM native-image, optional
                  :opts ["--verbose"
                         "--no-fallback"
+                        "--enable-all-security-services"
+                        "--initialize-at-build-time"
+                        ;"--initialize-at-run-time='cryptohash_clj.globals$next_random_bytes_BANG_',clojure.lang.Var"
+                        ;"--rerun-class-initialization-at-runtime='sun.security.jca.JCAUtil$CachedSecureRandomHolder',java.security.SecureRandom"
                         "-H:+ReportExceptionStackTraces"
-                        "--report-unsupported-elements-at-runtime"]}
-  :main ^:skip-aot cryptohash-clj.cli.tool
+                        "--report-unsupported-elements-at-runtime"]
+                 :jvm-opts ["-Dclojure.compiler.direct-linking=true"]}
+
+  :main cryptohash-clj.cli.tool
   :jar-exclusions [#"tool.clj"]
   )

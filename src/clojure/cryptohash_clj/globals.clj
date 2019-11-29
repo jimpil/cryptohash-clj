@@ -6,12 +6,13 @@
 (def ^:const ^byte ZB (byte 0))
 
 (def ^:dynamic ^Random *PRNG*
-  (SecureRandom.))
+  (delay ;; static-initialiser with SecureRandom breaks GRAAL native-image
+    (SecureRandom.)))
 
 (defn next-random-bytes!
   ^bytes [n]
   (let [^bytes random-bs (byte-array n)]
-    (.nextBytes *PRNG* random-bs)
+    (.nextBytes ^Random (force *PRNG*) random-bs)
     random-bs))
 
 (defmacro with-PRNG
