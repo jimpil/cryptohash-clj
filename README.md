@@ -21,7 +21,7 @@
 
 ### Minor
 
-- Support for values larger than 72 bytes) in BCrypt (truncate or SHA512)
+- Support for overly long values (> 72 bytes) in BCrypt (truncate/SHA512)
 - Highly configurable (with modern/safe defaults)
 - Fully spec-ed (but not enforced) 
 - Reflection-free (despite the heavy interop)
