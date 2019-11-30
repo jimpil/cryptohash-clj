@@ -5,7 +5,7 @@
 (def ^:const SEP \$)
 (def ^:const ^byte ZB (byte 0))
 
-(def ^:dynamic ^Random *PRNG*
+(def ^:dynamic *PRNG*
   (delay ;; static-initialiser with SecureRandom breaks GRAAL native-image
     (SecureRandom.)))
 
