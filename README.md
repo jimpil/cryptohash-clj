@@ -87,7 +87,7 @@ best to stick with the native output length.
 Can be configured with the following options:
 
 - `:version` (defaults to `:v2y` but `:v2a` and `:v2b` are valid choices) 
-- `:cpu-cost` (defaults to `13`)
+- `:cpu-cost` (defaults to `14`)
 - `:long-value` (defaults to `:sha512`, but `:truncate` is a valid choice)
 
 #### SCRYPT
@@ -134,23 +134,13 @@ on this (relatively modern) MacBook-Pro (2.8-3.8GHz Intel Core i7) from 2017.
 
 ## Requirements
 
-- Java 8 or above (strict)
-- Clojure 1.10.1 or above  (relaxed)
+- some recent version of Clojure
 
 ## Alternatives
 [crypto-password](https://github.com/weavejester/crypto-password) is the obvious alternative here.
 However it lacks an api for bytes/chars (even if the underlying Java lib supports it), stealth-mode, 
 and generally speaking is less configurable. Moreover, it comes with several dependencies.
   
-## CLI tool
-
-[GRAAL_VM native](https://www.graalvm.org/docs/reference-manual/native-image/) executables of the latest release (for Linux and MacOS)
- can be found in [this](https://github.com/jimpil/cryptohash-clj/tree/master/native-images) folder. 
-Uberjars can be made with `lein uberjar` at the root of the project (after cloning). 
-If you're in need of a cli-tool, don't rush to dismiss the humble uberjar. 
-It is less than half the size of the native-image, and with direct-linking enabled, you'll be (pleasantly) surprised by the ridiculously fast startup (we're talking sub-second here)!  
- 
-In any case, the tool supports a `-h` (`--help`) flag which will print out the available options. Custom options per algorithm (`--opts`) are expected to be valid EDN (when provided). 
 
 ## License
 
