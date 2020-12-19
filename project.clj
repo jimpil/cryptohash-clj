@@ -4,9 +4,9 @@
   :license {:name "EPL-2.0 OR GPL-2.0-or-later WITH Classpath-exception-2.0"
             :url "https://www.eclipse.org/legal/epl-2.0/"}
 
-  :dependencies [;[org.clojure/clojure "1.10.1" :scope "provided"]
-                 [org.clojure/clojure "1.9.0"] ;; for native-image
-                 [org.bouncycastle/bcpkix-jdk15on "1.64"]]
+  :dependencies [[org.clojure/clojure "1.10.1" :scope "provided"]
+                 ;[org.clojure/clojure "1.9.0"] ;; for native-image
+                 [org.bouncycastle/bcpkix-jdk15on "1.67"]]
 
   :profiles {:dev {:dependencies [[org.clojure/tools.cli "0.4.2"]]}
              :uberjar {:aot :all
@@ -16,9 +16,7 @@
                        :jvm-opts ["-Dclojure.compiler.direct-linking=true"]
                        :dependencies [[org.clojure/tools.cli "0.4.2"]]
                        }}
-  :source-paths      ["src/clojure"]
-  :java-source-paths ["src/java"]
-  :javac-options     ["--release" "8"]
+
   :release-tasks [["vcs" "assert-committed"]
                   ["change" "version" "leiningen.release/bump-version" "release"]
                   ["vcs" "commit"]

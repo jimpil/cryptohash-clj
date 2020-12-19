@@ -1,8 +1,7 @@
 (ns cryptohash-clj.api-test
   (:require [clojure.test :refer :all]
             [cryptohash-clj.api :refer :all]
-            [cryptohash-clj.encode :as enc])
-  (:import (org.bouncycastle.crypto.generators OpenBSDBCrypt)))
+            [cryptohash-clj.encode :as enc]))
 
 (defonce PASSWORD "_sUpErSeCrEt@1234!_")
 
@@ -34,12 +33,10 @@
     )
 
   (testing "BCRYPT with char-array input"
-    (let [hashed (hash-with :bcrypt (enc/to-chars PASSWORD))]
+    (let [^String hashed (hash-with :bcrypt (enc/to-chars PASSWORD))]
       (is (string? hashed))
       (is (= 60 (count hashed)))
       (is (true? (verify-with :bcrypt (enc/to-chars PASSWORD) hashed)))
-      ;; make sure we match the Java impl exactly!
-      (is (true? (OpenBSDBCrypt/checkPassword hashed (enc/to-chars PASSWORD))))
       )
     )
 

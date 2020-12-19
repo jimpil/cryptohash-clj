@@ -1,11 +1,8 @@
 (ns cryptohash-clj.impl.bcrypt
   (:require [cryptohash-clj
              [globals :as glb]
-             [encode :as enc]]
-            [clojure.string :as str]
-            [cryptohash-clj.equality :as eq])
-  (:import [org.bouncycastle.crypto.generators BCrypt]
-           [cryptohash_clj BCryptEncode]
+             [encode :as enc]])
+  (:import [org.bouncycastle.crypto.generators OpenBSDBCrypt]
            [java.util Arrays]
            [java.security MessageDigest]))
 
@@ -43,44 +40,21 @@
    {:keys [version long-value cpu-cost salt]
     :or {version :2y ;; doesn't really matter
          long-value :sha512
-         cpu-cost 13}}] ;; less than 12 is not safe in 2019
+         cpu-cost 14}}] ;; less than 12 is not safe in 2019
 
   (let [v (resolve-version version)
         ^bytes salt (or salt (glb/next-random-bytes! salt-length))
         input-length (alength raw-input)
-        tmp (delay (byte-array (unchecked-inc-int input-length))) ;; may not need this after all
         ^bytes input (cond-> raw-input
                              (> input-length MAX_BYTES)
-                             (adjust long-value)
-                             (< input-length MAX_BYTES)
-                             (System/arraycopy 0 @tmp 0 (min (alength ^bytes @tmp) input-length)))
-        to-clear (if (nil? input)
-                   [@tmp raw-input] ;; don't forget the raw input when it was not adjusted
-                   [input])
-        input  (or input @tmp)
-        hashed (BCrypt/generate input salt cpu-cost)
-        cost-str (cond->> cpu-cost
-                          (> 10 cpu-cost)
-                          (str 0))]
-
-    (apply glb/fill-bytes! to-clear)
-
-    (str glb/SEP v glb/SEP
-         cost-str  glb/SEP
-         (BCryptEncode/encodeData salt) ;; no separator here
-         (BCryptEncode/encodeData hashed))))
-
+                             (adjust long-value))
+        hashed (OpenBSDBCrypt/generate v input salt (int cpu-cost))]
+    (glb/fill-bytes! input)
+    hashed))
 
 (defn- hash=
   [^chars raw-chars ^String hashed]
-  (let [parts (str/split hashed #"\$")
-        [v c sh] (next (map parts (range 4)))
-        salt-b64 (subs sh 0 22)
-        ;K (subs sh 22 53)
-        raw-hashed (chash* raw-chars {:version  (keyword v)
-                                      :cpu-cost (Long/parseLong c)
-                                      :salt     (BCryptEncode/decodeSaltString salt-b64)})]
-    (eq/hash= raw-hashed hashed)))
+  (OpenBSDBCrypt/checkPassword hashed raw-chars))
 
 (extend-protocol IHashable
 
