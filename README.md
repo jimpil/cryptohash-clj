@@ -125,7 +125,7 @@ A convenience macro `with-PRNG` is also provided in the same namespace for easy 
 ## Crypto comparison
 Equality comparison is performed in a way that resists timing attacks (see `cryptohash-clj.equality`). 
 The length of the data being compared is still discoverable by an attacker, but in the context of 
-cryptographic hashing this is not a concern. In fact, many crypto-hashers produce fixed/well-known key lengths. 
+cryptographic hashing this is not a concern. In fact, many crypto-hashing functions produce fixed/well-known key lengths. 
 
 
 ## Defaults performance
