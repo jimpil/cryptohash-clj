@@ -1,4 +1,4 @@
-(defproject cryptohash-clj "0.1.10"
+(defproject cryptohash-clj "0.1.11-SNAPSHOT"
   :description "Cryptographic hashing facilities (pbkdf2/bcrypt/scrypt/argon2) for Clojure"
   :url "https://github.com/jimpil/cryptohash-clj"
   :license {:name "EPL-2.0 OR GPL-2.0-or-later WITH Classpath-exception-2.0"
