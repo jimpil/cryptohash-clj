@@ -53,7 +53,7 @@
     hashed))
 
 (defn- hash=
-  [raw-bytes ^String hashed opts]
+  [^bytes raw-bytes ^String hashed opts]
   (let [^bytes raw-bytes (cond-> raw-bytes
                                  (> (alength raw-bytes) MAX_BYTES)
                                  (adjust (:long-value opts :sha512)))
