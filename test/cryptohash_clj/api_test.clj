@@ -41,10 +41,26 @@
     )
 
   (testing "BCRYPT with byte-array input"
-    (let [hashed (hash-with :bcrypt (enc/to-bytes PASSWORD) nil)]
+    (let [hashed (hash-with :bcrypt (enc/to-bytes PASSWORD))]
       (is (string? hashed))
       (is (= 60 (count hashed)))
-      (is (true? (verify-with :bcrypt (enc/to-bytes PASSWORD) nil hashed))))
+      (is (true? (verify-with :bcrypt (enc/to-bytes PASSWORD) hashed))))
+    )
+
+  (testing "BCRYPT with overly long value (take SHA512)"
+    (let [long-password (char-array (repeat 75 \z))
+          hashed (hash-with :bcrypt long-password {:long-value :sha512})]
+      (is (string? hashed))
+      (is (= 60 (count hashed)))
+      (is (true? (verify-with :bcrypt long-password hashed {:long-value :sha512}))))
+    )
+
+  (testing "BCRYPT with overly long value (truncate)"
+    (let [long-password (char-array (repeat 75 \z))
+          hashed (hash-with :bcrypt long-password {:long-value :truncate})]
+      (is (string? hashed))
+      (is (= 60 (count hashed)))
+      (is (true? (verify-with :bcrypt long-password hashed {:long-value :truncate}))))
     )
 
   (testing "SCRYPT with String input"

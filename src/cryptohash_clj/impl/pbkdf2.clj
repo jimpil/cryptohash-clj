@@ -10,7 +10,7 @@
 
 (defprotocol IHashable
   (chash*  [this opts])
-  (verify* [this opts hashed]))
+  (verify* [this hashed opts]))
 
 (def algorithms
   {:hmac+sha1   "PBKDF2WithHmacSHA1"     ;; JDK7
@@ -19,7 +19,7 @@
 
 
 (defn- hash=
-  [x opts hashed]
+  [x hashed opts]
   (let [sep           (str (:separator opts glb/SEP))
         sep-pattern   (ut/re-pattern-escaping sep)
         parts         (str/split hashed sep-pattern)
@@ -109,14 +109,14 @@
   (Class/forName "[C") ;; char-arrays
   (chash* [this opts]
     (pbkdf2* this opts))
-  (verify* [this opts hashed]
-    (hash= this opts hashed))
+  (verify* [this hashed opts]
+    (hash= this hashed opts))
 
   String
   (chash* [this opts]
     (pbkdf2* (enc/to-chars this) opts))
-  (verify* [this opts hashed]
-    (hash= this opts hashed))
+  (verify* [this hashed opts]
+    (hash= this hashed opts))
   )
 
 (extend-protocol IHashable
@@ -125,8 +125,8 @@
     (let [ret (pbkdf2*  (enc/to-chars this) opts)]
       (glb/fill-bytes! this)
       ret))
-  (verify* [this opts hashed]
-    (hash= this opts hashed)))
+  (verify* [this hashed opts]
+    (hash= this hashed opts)))
 
 ;;===================================
 (defn chash
@@ -143,6 +143,6 @@
    <opts> must match the ones used to produce <hashed> and can include a
    pre-constructed :verifyer. Returns true/false."
   ([x hashed]
-   (verify x nil hashed))
-  ([x opts hashed]
-   (verify* x opts (enc/to-str hashed))))
+   (verify x hashed nil))
+  ([x hashed opts]
+   (verify* x (enc/to-str hashed) opts)))

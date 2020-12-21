@@ -1,4 +1,0 @@
-(ns cryptohash-clj.proto)
-
-
-

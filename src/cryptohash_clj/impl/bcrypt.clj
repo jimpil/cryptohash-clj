@@ -8,7 +8,7 @@
 
 (defprotocol IHashable
   (chash*  [this opts])
-  (verify* [this opts hashed]))
+  (verify* [this hashed opts]))
 
 (def VERSIONS
   #{:2a :2b :2y}) ;; '2a' is not backwards compatible
@@ -27,7 +27,7 @@
 (defn- adjust
   ^bytes [^bytes input strategy]
   (let [ret (case strategy
-              :truncate (-> input enc/to-bytes (Arrays/copyOf MAX_BYTES))
+              :truncate (Arrays/copyOf input MAX_BYTES)
               ;; produces 64 bytes - well within the limit
               :sha512 (let [md (MessageDigest/getInstance "SHA-512")] ;; 64 bytes
                         (.digest md input)))]
@@ -53,30 +53,36 @@
     hashed))
 
 (defn- hash=
-  [^chars raw-chars ^String hashed]
-  (OpenBSDBCrypt/checkPassword hashed raw-chars))
+  [raw-chars ^String hashed opts]
+  (let [^bytes raw-bytes (enc/to-bytes raw-chars)
+        ^bytes raw-bytes (cond-> raw-bytes
+                                 (> (alength raw-bytes) MAX_BYTES)
+                                 (adjust (:long-value opts :sha512)))
+        matches? (OpenBSDBCrypt/checkPassword hashed raw-bytes)]
+    (glb/fill-bytes! raw-bytes)
+    matches?))
 
 (extend-protocol IHashable
 
   (Class/forName "[C") ;; char-arrays
   (chash* [this opts]
     (bcrypt* (enc/to-bytes this) opts))
-  (verify* [this _ hashed]
-    (hash= this hashed))
+  (verify* [this hashed opts]
+    (hash= this hashed opts))
 
   String
   (chash* [this opts]
     (bcrypt* (enc/to-bytes this) opts))
-  (verify* [this opts hashed]
-    (hash= (enc/to-chars this) hashed))
+  (verify* [this hashed opts]
+    (hash= (enc/to-chars this) hashed opts))
   )
 
 (extend-protocol IHashable
   (Class/forName "[B") ;; byte-arrays
   (chash* [this opts]
     (bcrypt* this opts))
-  (verify* [this opts hashed]
-    (hash= (enc/to-chars this) hashed)))
+  (verify* [this hashed opts]
+    (hash= (enc/to-chars this) hashed opts)))
 ;;=======================================================
 
 (defn chash
@@ -90,9 +96,8 @@
 
 (defn verify
   "Main entry point for verifying that <x> (String/bytes/chars) matches <hashed>.
-   <opts> must match the ones used to produce <hashed> and can include a
-   pre-constructed :verifyer. Returns true/false."
+   <opts> must match the ones used to produce <hashed>. Returns true/false."
   ([x hashed]
-   (verify x nil hashed))
-  ([x opts hashed]
-   (verify* x opts (enc/to-str hashed))))
+   (verify x hashed nil))
+  ([x hashed opts]
+   (verify* x (enc/to-str hashed) opts)))

@@ -9,7 +9,7 @@
 
 (defprotocol IHashable
   (chash*  [this opts])
-  (verify* [this opts hashed]))
+  (verify* [this hashed opts]))
 
 (def VERSIONS
   {:v10 Argon2Parameters/ARGON2_VERSION_10
@@ -88,13 +88,13 @@
   (Class/forName "[C") ;; char-arrays
   (chash* [this opts]
     (argon2* this opts))
-  (verify* [this _ hashed]
+  (verify* [this hashed _]
     (hash= this hashed))
 
   String
   (chash* [this opts]
     (argon2* (enc/to-chars this) opts))
-  (verify* [this opts hashed]
+  (verify* [this hashed _]
     (hash= this hashed))
   )
 
@@ -102,7 +102,7 @@
   (Class/forName "[B") ;; byte-arrays
   (chash* [this opts]
     (argon2* (enc/to-chars this) opts))
-  (verify* [this opts hashed]
+  (verify* [this hashed _]
     (hash= this hashed)))
 ;;=======================================================
 
@@ -118,6 +118,6 @@
    <opts> must match the ones used to produce <hashed> and can include a
    pre-constructed :verifyer. Returns true/false."
   ([x hashed]
-   (verify x nil hashed))
-  ([x opts hashed]
-   (verify* x opts (enc/to-str hashed))))
+   (verify x hashed nil))
+  ([x hashed opts]
+   (verify* x (enc/to-str hashed) opts)))

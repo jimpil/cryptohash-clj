@@ -9,7 +9,7 @@
 
 (defprotocol IHashable
   (chash*  [this opts])
-  (verify* [this opts hashed]))
+  (verify* [this hashed opts]))
 
 (defn- scrypt*
   ^String
@@ -52,13 +52,13 @@
   (Class/forName "[C") ;; char-arrays
   (chash* [this opts]
     (scrypt* (enc/to-bytes this) opts))
-  (verify* [this _ hashed]
+  (verify* [this hashed _]
     (hash= this hashed))
 
   String
   (chash* [this opts]
     (scrypt* (enc/to-bytes this) opts))
-  (verify* [this opts hashed]
+  (verify* [this hashed _]
     (hash= (enc/to-chars this) hashed))
   )
 
@@ -66,7 +66,7 @@
   (Class/forName "[B") ;; byte-arrays
   (chash* [this opts]
     (scrypt* this opts))
-  (verify* [this opts hashed]
+  (verify* [this hashed _]
     (hash= (enc/to-chars this) hashed)))
 
 ;;====================================================
@@ -80,6 +80,6 @@
   "Compare a raw string with a string encrypted with the [[encrypt]] function.
   Returns true if the string matches, false otherwise."
   ([x hashed]
-   (verify x nil hashed))
-  ([x opts hashed]
-   (verify* x opts (enc/to-str hashed))))
+   (verify x hashed nil))
+  ([x hashed opts]
+   (verify* x (enc/to-str hashed) opts)))
