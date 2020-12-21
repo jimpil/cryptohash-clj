@@ -107,17 +107,19 @@
 ;;=======================================================
 
 (defn chash
-  "Main entry point for hashing <x> (String/bytes/chars) using Argon2."
+  "Main entry point for hashing <x> (String/bytes/chars) using Argon2.
+   <opts> can include :type (default :argon2id), version (default :v13),
+   :iterations (default 100), :mem-cost (default 12), :key-length (default 32),
+   and :salt-length (default 16). Returns String."
   ([x]
    (chash x nil))
   ([x opts]
    (chash* x opts)))
 
 (defn verify
-  "Main entry point for verifying that <x> (String/bytes/chars) matches <hashed>.
-   <opts> must match the ones used to produce <hashed> and can include a
-   pre-constructed :verifyer. Returns true/false."
-  ([x hashed]
-   (verify x hashed nil))
-  ([x hashed opts]
-   (verify* x (enc/to-str hashed) opts)))
+  "Main entry point for verifying that <x> (String/bytes/chars) matches <argon-hashed>.
+   Returns true/false."
+  ([x argon-hashed]
+   (verify x argon-hashed nil))
+  ([x argon-hashed opts]
+   (verify* x (enc/to-str argon-hashed) opts)))

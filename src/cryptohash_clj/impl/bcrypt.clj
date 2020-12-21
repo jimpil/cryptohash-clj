@@ -53,9 +53,8 @@
     hashed))
 
 (defn- hash=
-  [raw-chars ^String hashed opts]
-  (let [^bytes raw-bytes (enc/to-bytes raw-chars)
-        ^bytes raw-bytes (cond-> raw-bytes
+  [raw-bytes ^String hashed opts]
+  (let [^bytes raw-bytes (cond-> raw-bytes
                                  (> (alength raw-bytes) MAX_BYTES)
                                  (adjust (:long-value opts :sha512)))
         matches? (OpenBSDBCrypt/checkPassword hashed raw-bytes)]
@@ -68,13 +67,13 @@
   (chash* [this opts]
     (bcrypt* (enc/to-bytes this) opts))
   (verify* [this hashed opts]
-    (hash= this hashed opts))
+    (hash= (enc/to-bytes this) hashed opts))
 
   String
   (chash* [this opts]
     (bcrypt* (enc/to-bytes this) opts))
   (verify* [this hashed opts]
-    (hash= (enc/to-chars this) hashed opts))
+    (hash= (enc/to-bytes this) hashed opts))
   )
 
 (extend-protocol IHashable
@@ -82,22 +81,23 @@
   (chash* [this opts]
     (bcrypt* this opts))
   (verify* [this hashed opts]
-    (hash= (enc/to-chars this) hashed opts)))
+    (hash= this hashed opts)))
 ;;=======================================================
 
 (defn chash
   "Main entry point for hashing <x> (String/bytes/chars) using BCrypt.
-   <opts> must inlude a :cost key and either a pre-constructed :hasher,
-   or options per `new-hasher`. The return value type is dictated by <x>."
+   <opts> can include a :cpu-cost (default 14), :version (default 2y),
+   and a :long-value strategy (defaults to :sha512). Returns String."
   ([x]
    (chash x nil))
   ([x opts]
    (chash* x opts)))
 
 (defn verify
-  "Main entry point for verifying that <x> (String/bytes/chars) matches <hashed>.
-   <opts> must match the ones used to produce <hashed>. Returns true/false."
-  ([x hashed]
-   (verify x hashed nil))
-  ([x hashed opts]
-   (verify* x (enc/to-str hashed) opts)))
+  "Main entry point for verifying that <x> (String/bytes/chars) matches <bcrypt-hashed>.
+   If a :long-value strategy (other than the default) was when creating <bcrypt-hashed>
+   <opts> must include it too. Returns true/false."
+  ([x bcrypt-hashed]
+   (verify x bcrypt-hashed nil))
+  ([x bcrypt-hashed opts]
+   (verify* x (enc/to-str bcrypt-hashed) opts)))

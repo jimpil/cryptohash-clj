@@ -130,19 +130,18 @@
 
 ;;===================================
 (defn chash
-  "Main entry point for hashing <x> (String/bytes/chars) using BCrypt.
-   <opts> must inlude a :cost key and either a pre-constructed :hasher,
-   or options per `new-hasher`. The return value type is dictated by <x>."
+  "Main entry point for hashing <x> (String/bytes/chars) using PBKDF2.
+   <opts> can include :algo (default :hmac+sha512), :iterations (default 250000),
+   and :salt-length (default 16). Returns String."
   ([x]
    (chash x nil))
   ([x opts]
    (chash* x opts)))
 
 (defn verify
-  "Main entry point for verifying that <x> (String/bytes/chars) matches <hashed>.
-   <opts> must match the ones used to produce <hashed> and can include a
-   pre-constructed :verifyer. Returns true/false."
-  ([x hashed]
-   (verify x hashed nil))
-  ([x hashed opts]
-   (verify* x (enc/to-str hashed) opts)))
+  "Main entry point for verifying that <x> (String/bytes/chars)
+   matches <pbkdf2-hashed>. Returns true/false."
+  ([x pbkdf2-hashed]
+   (verify x pbkdf2-hashed nil))
+  ([x pbkdf2-hashed opts]
+   (verify* x (enc/to-str pbkdf2-hashed) opts)))

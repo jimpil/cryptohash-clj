@@ -71,15 +71,19 @@
 
 ;;====================================================
 (defn chash
+  "Main entry point for hashing <x> (String/bytes/chars) using SCrypt.
+   <opts> can include a :cpu-cost (default 17), :memcost (default 8),
+   :pfactor (default 1), :key-length (default 192), and  :salt-length
+   (default 16). Returns String."
   ([x]
    (chash x nil))
   ([x opts]
    (chash* x opts)))
 
 (defn verify
-  "Compare a raw string with a string encrypted with the [[encrypt]] function.
-  Returns true if the string matches, false otherwise."
-  ([x hashed]
-   (verify x hashed nil))
-  ([x hashed opts]
-   (verify* x (enc/to-str hashed) opts)))
+  "Main entry point for verifying that <x> (String/bytes/chars)
+   matches <scrypt-hashed>. Returns true/false."
+  ([x scrypt-hashed]
+   (verify x scrypt-hashed nil))
+  ([x scrypt-hashed opts]
+   (verify* x (enc/to-str scrypt-hashed) opts)))
