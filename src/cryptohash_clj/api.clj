@@ -9,34 +9,34 @@
 
 (defmethod hash-with :pbkdf2
   [_ raw & opts]
-  (apply p/chash raw opts))
+  (p/chash raw (first opts)))
 
 (defmethod hash-with :bcrypt
   [_ raw & opts]
-  (apply b/chash raw opts))
+  (b/chash raw (first opts)))
 
 (defmethod hash-with :scrypt
   [_ raw & opts]
-  (apply s/chash raw opts))
+  (s/chash raw (first opts)))
 
 (defmethod hash-with :argon2
   [_ raw & opts]
-  (apply a/chash raw opts))
+  (a/chash raw (first opts)))
 
 (defmulti verify-with (fn [k & _] k))
 
 (defmethod verify-with :pbkdf2
-  [_ raw & args]
-  (apply p/verify raw args))
+  [_ raw hashed & opts]
+  (p/verify raw hashed (first opts)))
 
 (defmethod verify-with :bcrypt
-  [_ raw & args]
-  (apply b/verify raw args))
+  [_ raw hashed & opts]
+  (b/verify raw hashed (first opts)))
 
 (defmethod verify-with :scrypt
-  [_ raw & args]
-  (apply s/verify raw args))
+  [_ raw hashed & opts]
+  (s/verify raw hashed (first opts)))
 
 (defmethod verify-with :argon2
-  [_ raw & args]
-  (apply a/verify raw args))
+  [_ raw hashed & opts]
+  (a/verify raw hashed (first opts)))
